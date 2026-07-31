@@ -19,7 +19,7 @@ final class TBAddonStore: ObservableObject {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support", isDirectory: true)
         return base
-            .appendingPathComponent("TargetBridge", isDirectory: true)
+            .appendingPathComponent(TBIntelSenderIdentity.applicationSupportName, isDirectory: true)
             .appendingPathComponent("Addons", isDirectory: true)
     }
 

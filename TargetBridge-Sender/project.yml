@@ -67,6 +67,37 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/TargetBridge.app/Contents/MacOS/TargetBridge"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
+  TBIntelDisplaySender:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: TBDisplaySender
+        excludes:
+          - "**/*.md"
+      - path: TBDisplayShared
+        excludes:
+          - "**/*.md"
+      - path: ../TargetBridge-Shared
+        excludes:
+          - "**/*.md"
+      - path: TargetBridgeSupport/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_NAME: "TargetBridge Intel Sender"
+        PRODUCT_BUNDLE_IDENTIFIER: com.targetbridge.intel-sender
+        MARKETING_VERSION: "3.3.0-intel"
+        CURRENT_PROJECT_VERSION: "1"
+        ARCHS: x86_64
+        ONLY_ACTIVE_ARCH: YES
+        SWIFT_VERSION: "6.0"
+        ENABLE_HARDENED_RUNTIME: NO
+        SWIFT_STRICT_CONCURRENCY: minimal
+        SWIFT_OBJC_BRIDGING_HEADER: TargetBridgeSupport/TargetBridge-Bridging-Header.h
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: TargetBridgeSupport/IntelSender-Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
 schemes:
   TBDisplaySender:
     build:
@@ -79,3 +110,9 @@ schemes:
       gatherCoverageData: false
       targets:
         - TBDisplaySenderTests
+  TBIntelDisplaySender:
+    build:
+      targets:
+        TBIntelDisplaySender: all
+    run:
+      config: Debug

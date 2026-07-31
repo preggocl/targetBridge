@@ -8,7 +8,7 @@ enum TBInputDebugLog {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support", isDirectory: true)
         return base
-            .appendingPathComponent("TargetBridge", isDirectory: true)
+            .appendingPathComponent(TBIntelSenderIdentity.applicationSupportName, isDirectory: true)
             .appendingPathComponent("Logs", isDirectory: true)
             .appendingPathComponent("input-debug.log", isDirectory: false)
     }

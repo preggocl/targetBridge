@@ -6,7 +6,7 @@ import os
 /// 'subsystem == "com.targetbridge.sender"'` (or Console.app) shows the
 /// connection lifecycle without attaching a debugger.
 enum TBLog {
-    static let connection = Logger(subsystem: "com.targetbridge.sender", category: "connection")
+    static let connection = Logger(subsystem: TBIntelSenderIdentity.logSubsystem, category: "connection")
 }
 
 /// Pure helpers for deciding how to dial a receiver and for composing
