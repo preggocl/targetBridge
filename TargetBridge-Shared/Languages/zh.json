@@ -7,7 +7,7 @@
   "common.language.chinese": "中文",
   "common.version_label": "版本",
   "common.settings": "设置",
-  "sender.app_subtitle": "在 macOS 上创建一个 iMac 虚拟显示器，并将其内容发送到 5K 接收端。",
+  "sender.app_subtitle": "创建 iMac 虚拟显示器，并将内容发送到 4K 或 5K 接收端。",
   "sender.section.connection": "连接",
   "sender.section.language": "语言",
   "sender.section.mode": "模式 v1",

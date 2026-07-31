@@ -7,7 +7,7 @@
   "common.language.chinese": "中文",
   "common.version_label": "Version",
   "common.settings": "Settings",
-  "sender.app_subtitle": "Creates an iMac virtual display on macOS and sends its contents to the 5K receiver.",
+  "sender.app_subtitle": "Creates an iMac virtual display and sends it to a 4K or 5K receiver.",
   "sender.section.connection": "Connection",
   "sender.section.language": "Language",
   "sender.section.mode": "Mode v1",

@@ -23,6 +23,7 @@ Related reading:
 
 Each sender session offers three ready-to-use display profiles before connecting:
 
+- `Work 4K` creates a 2048 x 1152 HiDPI extended desktop for a 21.5-inch 4K iMac and streams 4096 x 2304.
 - `Work 5K` creates an extended desktop at 5K with render matching enabled.
 - `Low latency` mirrors the desktop at 1440p and 60 FPS without audio relay.
 - `Presentation` mirrors the desktop at 1440p with audio relay enabled.

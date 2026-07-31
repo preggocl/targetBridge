@@ -117,11 +117,11 @@ struct TBDisplaySenderAboutView: View {
 
     private var aboutSubtitle: String {
         switch service.language {
-        case .italian: return "Riporta l'idea di Target Display Mode nel mondo Apple Silicon con una pipeline diretta Mac-to-Mac."
-        case .english: return "Brings the Target Display Mode idea back to Apple Silicon with a direct Mac-to-Mac display pipeline."
-        case .german: return "Bringt die Idee von Target Display Mode mit einer direkten Mac-zu-Mac-Display-Pipeline zurück auf Apple Silicon."
-        case .french: return "Redonne vie à l’idée du Target Display Mode sur Apple Silicon grâce à une chaîne d’affichage directe de Mac à Mac."
-        case .chinese: return "通过直接的 Mac 到 Mac 显示管线，把 Target Display Mode 的理念带回 Apple Silicon 时代。"
+        case .italian: return "Target Display Mode via una pipeline diretta Mac-to-Mac per sender Intel e display iMac 4K/5K."
+        case .english: return "Target Display Mode through a direct Mac-to-Mac pipeline for Intel senders and 4K/5K iMac displays."
+        case .german: return "Target Display Mode über eine direkte Mac-zu-Mac-Pipeline für Intel-Sender und 4K/5K-iMac-Displays."
+        case .french: return "Target Display Mode via une chaîne Mac à Mac directe pour sender Intel et écrans iMac 4K/5K."
+        case .chinese: return "通过直接的 Mac 到 Mac 管线，让 Intel 发送端连接 4K/5K iMac 显示器。"
         }
     }
 
@@ -157,11 +157,11 @@ struct TBDisplaySenderAboutView: View {
 
     private var creditsBody: String {
         switch service.language {
-        case .italian: return "Creato da swellweb con il supporto della community open source TargetBridge. Contributi chiave da tester e collaboratori come ThomasWaldmann, DrDavidL, potar712 e altri membri della community."
-        case .english: return "Created by swellweb with support from the TargetBridge open-source community. Key contributions from testers and collaborators such as ThomasWaldmann, DrDavidL, potar712, and other community members."
-        case .german: return "Erstellt von swellweb mit Unterstützung der TargetBridge-Open-Source-Community. Wichtige Beiträge von Testern und Mitwirkenden wie ThomasWaldmann, DrDavidL, potar712 und weiteren Community-Mitgliedern."
-        case .french: return "Créé par swellweb avec le soutien de la communauté open source TargetBridge. Contributions essentielles de testeurs et collaborateurs comme ThomasWaldmann, DrDavidL, potar712 et d’autres membres de la communauté."
-        case .chinese: return "由 swellweb 在 TargetBridge 开源社区的支持下创建。ThomasWaldmann、DrDavidL、potar712 以及其他社区成员提供了重要测试和协作贡献。"
+        case .italian: return "TargetBridge originale creato da swellweb e dalla community open source. Fork TargetBridge Intel Sender sviluppato da AndyStuardo. Contributi chiave da ThomasWaldmann, DrDavidL, potar712 e altri membri della community. Licenza MIT; restano conservati copyright e attribuzione originali."
+        case .english: return "Original TargetBridge created by swellweb and its open-source community. TargetBridge Intel Sender fork developed by AndyStuardo. Key contributions from ThomasWaldmann, DrDavidL, potar712, and other community members. MIT licensed; original copyright and attribution are preserved."
+        case .german: return "Das ursprüngliche TargetBridge wurde von swellweb und der Open-Source-Community erstellt. TargetBridge Intel Sender Fork entwickelt von AndyStuardo. Beiträge von ThomasWaldmann, DrDavidL, potar712 und weiteren Mitgliedern. MIT-Lizenz; ursprüngliches Copyright und Namensnennung bleiben erhalten."
+        case .french: return "TargetBridge original créé par swellweb et sa communauté open source. Fork TargetBridge Intel Sender développé par AndyStuardo. Contributions de ThomasWaldmann, DrDavidL, potar712 et d’autres membres. Licence MIT ; copyright et attribution d’origine conservés."
+        case .chinese: return "原版 TargetBridge 由 swellweb 和开源社区创建。TargetBridge Intel Sender 分支由 AndyStuardo 开发。ThomasWaldmann、DrDavidL、potar712 等社区成员亦有贡献。采用 MIT 许可证，并保留原始版权和署名。"
         }
     }
 

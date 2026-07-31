@@ -32,7 +32,19 @@ The x86_64 probe created and prepared hardware-required sessions on the actual I
 | 2304x1296 | 60 | 40 Mbps | H.264 | yes | `com.apple.videotoolbox.videoencoder.h264.gva` | 0 | none |
 | 2304x1296 | 60 | 40 Mbps | HEVC | yes | `com.apple.videotoolbox.videoencoder.hevc.ave` | 0 | none |
 
-The two new prioritized profiles use H.264 for conservative Monterey receiver compatibility. For adaptive presets, HEVC is selected only when sender hardware and receiver decoding support are both reported; otherwise the recorded fallback is H.264.
+The two prioritized 4K profiles prefer HEVC and fall back to H.264 when sender hardware or receiver decoding support is unavailable. A real end-to-end session subsequently confirmed HEVC at 4096 x 2304, 30 delivered FPS, over `bridge0` to the unchanged Monterey Receiver.
+
+## 4K modes and low-latency experiment
+
+- `Work 4K` selects extended desktop, render matching and logical 2048 x 1152 HiDPI.
+- `4K HiDPI 2304` provides a larger logical 2304 x 1296 workspace while keeping the encoded stream at the Intel-safe 4096 x 2304 ceiling.
+- The menu-bar icon exposes every discovered Receiver, duplicate/extended source and capture preset. Changes made during a live session perform a controlled stop, virtual-display rebuild and reconnect; CoreGraphics cannot change that topology without a brief interruption.
+- `RAW NV12 (experimental)` bypasses H.264/HEVC only when the Receiver advertises support. At 4096 x 2304 x 60 it carries about 6.8 Gbit/s before framing overhead, so it may reduce codec latency but can increase copy pressure, dropped frames and instability.
+- A second Thunderbolt cable is not used for one session. Each session creates one TCP connection bound to one local address/interface, and the compressed 4K profiles use only 80 Mbps nominal bitrate. Multi-path striping would require a new protocol at both ends and would not address capture, display-refresh or encode/decode delay.
+
+## Attribution
+
+This branch identifies itself as version `3.3.0-intel.1`. The About panel credits the original TargetBridge project and community, identifies AndyStuardo as developer of the Intel Sender fork, and preserves the original MIT copyright and attribution. The upstream Receiver remains unchanged.
 
 ## Thunderbolt Bridge
 
