@@ -31,7 +31,12 @@ if [[ -e "$DEST_APP" ]]; then
 fi
 ditto "$SOURCE_APP" "$DEST_APP"
 xattr -cr "$DEST_APP" || true
-codesign --force --deep --sign - "$DEST_APP"
+# Keep a stable designated requirement across local development builds. Plain
+# ad-hoc signing defaults to a CDHash-only identity, so every code change looks
+# like a new app to TCC and invalidates Screen Recording consent.
+codesign --force --deep --sign - \
+  --requirements '=designated => identifier "com.targetbridge.intel-sender"' \
+  "$DEST_APP"
 
 echo "Built: $DEST_APP"
 file "$DEST_APP/Contents/MacOS/$PRODUCT_NAME"

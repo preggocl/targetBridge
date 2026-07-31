@@ -2359,7 +2359,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
             configuration.showsCursor = !largeCursor
             configuration.scalesToFit = true
             configuration.captureResolution = preset.captureResolution
-            configuration.capturesAudio = true
+            configuration.capturesAudio = audioEnabled
             configuration.excludesCurrentProcessAudio = true
             configuration.sampleRate = 48000
             configuration.channelCount = 2
@@ -2395,11 +2395,13 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
                 type: .screen,
                 sampleHandlerQueue: DispatchQueue(label: "fd.tbmonitor.sender.capture", qos: .userInteractive)
             )
-            try stream.addStreamOutput(
-                delegate,
-                type: .audio,
-                sampleHandlerQueue: DispatchQueue(label: "fd.tbmonitor.sender.audio", qos: .userInteractive)
-            )
+            if audioEnabled {
+                try stream.addStreamOutput(
+                    delegate,
+                    type: .audio,
+                    sampleHandlerQueue: DispatchQueue(label: "fd.tbmonitor.sender.audio", qos: .userInteractive)
+                )
+            }
             try await stream.startCapture()
             scStream = stream
             isStreaming = true
