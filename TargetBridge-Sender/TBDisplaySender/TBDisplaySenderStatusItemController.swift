@@ -3,6 +3,18 @@ import Combine
 
 @MainActor
 final class TBDisplaySenderStatusItemController: NSObject {
+    private final class QuickAction: NSObject {
+        let sessionID: UUID
+        let kind: String
+        let value: String
+
+        init(sessionID: UUID, kind: String, value: String = "") {
+            self.sessionID = sessionID
+            self.kind = kind
+            self.value = value
+        }
+    }
+
     private let service: TBDisplaySenderService
     nonisolated(unsafe) private var statusItem: NSStatusItem?
     private var cancellables = Set<AnyCancellable>()
@@ -110,10 +122,7 @@ final class TBDisplaySenderStatusItemController: NSObject {
         }
 
         for session in service.sessions {
-            let line = "\(service.sessionTitle(for: session)): \(session.statusText)"
-            let sessionItem = NSMenuItem(title: line, action: nil, keyEquivalent: "")
-            sessionItem.isEnabled = false
-            menu.addItem(sessionItem)
+            menu.addItem(makeSessionMenuItem(for: session))
         }
 
         menu.addItem(.separator())
@@ -158,6 +167,72 @@ final class TBDisplaySenderStatusItemController: NSObject {
         menu.addItem(quitItem)
     }
 
+    private func makeSessionMenuItem(for session: TBDisplaySenderSession) -> NSMenuItem {
+        let item = NSMenuItem(
+            title: "\(service.sessionTitle(for: session)): \(session.statusText)",
+            action: nil,
+            keyEquivalent: ""
+        )
+        let submenu = NSMenu()
+
+        let connectionTitle = (session.isConnected || session.isStreaming)
+            ? TBDisplaySenderL10n.stopButton(service.language)
+            : TBDisplaySenderL10n.connectButton(service.language)
+        submenu.addItem(actionItem(connectionTitle, session: session, kind: "connection"))
+        submenu.addItem(.separator())
+
+        let receivers = NSMenuItem(title: TBDisplaySenderL10n.discoveredReceiver(service.language), action: nil, keyEquivalent: "")
+        let receiverMenu = NSMenu()
+        if service.discoveredReceivers.isEmpty {
+            let none = NSMenuItem(title: "No receivers found", action: nil, keyEquivalent: "")
+            none.isEnabled = false
+            receiverMenu.addItem(none)
+        } else {
+            for receiver in service.discoveredReceivers {
+                let receiverItem = actionItem(receiver.displayText, session: session, kind: "receiver", value: receiver.id)
+                receiverItem.state = receiver.id == session.selectedReceiverID ? .on : .off
+                receiverMenu.addItem(receiverItem)
+            }
+        }
+        receivers.submenu = receiverMenu
+        submenu.addItem(receivers)
+
+        let sources = NSMenuItem(title: "Display type", action: nil, keyEquivalent: "")
+        let sourceMenu = NSMenu()
+        for source in TBDisplayCaptureSource.allCases {
+            let sourceItem = actionItem(source.title(service.language), session: session, kind: "source", value: source.rawValue)
+            sourceItem.state = source == session.captureSource ? .on : .off
+            sourceMenu.addItem(sourceItem)
+        }
+        sources.submenu = sourceMenu
+        submenu.addItem(sources)
+
+        let profiles = NSMenuItem(title: "Display profile", action: nil, keyEquivalent: "")
+        let profileMenu = NSMenu()
+        for preset in TBDisplayCapturePreset.allCases {
+            let profileItem = actionItem("\(preset.title) — \(preset.description)", session: session, kind: "preset", value: preset.rawValue)
+            profileItem.state = preset == session.capturePreset ? .on : .off
+            profileMenu.addItem(profileItem)
+        }
+        profiles.submenu = profileMenu
+        submenu.addItem(profiles)
+
+        let raw = actionItem("RAW NV12 (experimental)", session: session, kind: "raw")
+        raw.state = session.rawNV12Experimental ? .on : .off
+        raw.toolTip = "Bypasses H.264/HEVC; approximately 6.8 Gbit/s at 4K60."
+        submenu.addItem(raw)
+
+        item.submenu = submenu
+        return item
+    }
+
+    private func actionItem(_ title: String, session: TBDisplaySenderSession, kind: String, value: String = "") -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: #selector(performQuickAction(_:)), keyEquivalent: "")
+        item.target = self
+        item.representedObject = QuickAction(sessionID: session.id, kind: kind, value: value)
+        return item
+    }
+
     // Menu-item handlers run while the menu is still dismissing. Doing work
     // synchronously here (activating the app, ordering windows front, mutating
     // observed session state) interrupts the menu window's fade-out: its alpha
@@ -189,6 +264,38 @@ final class TBDisplaySenderStatusItemController: NSObject {
     private func stopAll() {
         runAfterMenuDismissal { [service] in
             service.stopAll()
+        }
+    }
+
+    @objc
+    private func performQuickAction(_ sender: NSMenuItem) {
+        guard let action = sender.representedObject as? QuickAction else { return }
+        runAfterMenuDismissal { [service] in
+            guard let session = service.sessions.first(where: { $0.id == action.sessionID }) else { return }
+            switch action.kind {
+            case "connection":
+                if session.isConnected || session.isStreaming {
+                    session.stop()
+                } else {
+                    session.connect()
+                }
+            case "receiver":
+                guard let receiver = service.discoveredReceivers.first(where: { $0.id == action.value }) else { return }
+                service.reconfigure(session) { service.applyDiscoveredReceiver(receiver, to: session) }
+            case "source":
+                guard let source = TBDisplayCaptureSource(rawValue: action.value) else { return }
+                service.reconfigure(session) { session.captureSource = source }
+            case "preset":
+                guard let preset = TBDisplayCapturePreset(rawValue: action.value) else { return }
+                service.reconfigure(session) {
+                    session.capturePreset = preset
+                    session.matchRenderToStream = true
+                }
+            case "raw":
+                service.reconfigure(session) { session.rawNV12Experimental.toggle() }
+            default:
+                break
+            }
         }
     }
 

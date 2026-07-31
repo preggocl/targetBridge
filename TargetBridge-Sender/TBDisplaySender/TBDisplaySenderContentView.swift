@@ -631,6 +631,12 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                         }
                     }
 
+                    settingRow("RAW NV12 (experimental)", details: "Bypasses H.264/HEVC for lower codec latency. Requires Receiver support and about 6.8 Gbit/s at 4K60; disable it if frames drop or the link is unstable.") {
+                        Toggle("", isOn: $session.rawNV12Experimental)
+                            .labelsHidden()
+                            .disabled(session.isConnected || session.isStreaming)
+                    }
+
                     if service.inputDockstationAvailable {
                         settingRow(inputDockstationTitle, details: inputDockstationDetails) {
                             Picker(

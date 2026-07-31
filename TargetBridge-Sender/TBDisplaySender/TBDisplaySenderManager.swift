@@ -301,6 +301,7 @@ final class TBDisplaySenderService: ObservableObject {
         var inputControlRole: String?
         var inputBindings: [TBInputBinding]?
         var matchRenderToStream: Bool?
+        var rawNV12Experimental: Bool?
     }
 
     private var lastPersistedData: Data?
@@ -335,7 +336,8 @@ final class TBDisplaySenderService: ObservableObject {
                 volume: session.volume,
                 inputControlRole: session.inputControlRole.rawValue,
                 inputBindings: session.inputBindings,
-                matchRenderToStream: session.matchRenderToStream
+                matchRenderToStream: session.matchRenderToStream,
+                rawNV12Experimental: session.rawNV12Experimental
             )
         }
         guard let data = try? JSONEncoder().encode(configs) else { return }
@@ -411,6 +413,7 @@ final class TBDisplaySenderService: ObservableObject {
         session.brightness = config.brightness
         session.volume = config.volume ?? 0.5
         session.matchRenderToStream = config.matchRenderToStream ?? false
+        session.rawNV12Experimental = config.rawNV12Experimental ?? false
     }
 
     func refreshLocalInterfaces() {
@@ -421,6 +424,7 @@ final class TBDisplaySenderService: ObservableObject {
     }
 
     func applyDiscoveredReceiver(_ receiver: TBDiscoveredReceiver, to session: TBDisplaySenderSession) {
+        session.selectedReceiverID = receiver.id
         session.receiverIP = receiver.ip(for: session.transportKind)
         session.receiverSupportsHEVCDecodeHint = receiver.supportsHEVCDecode
         if session.localInterfaceIP.isEmpty {
@@ -430,6 +434,24 @@ final class TBDisplaySenderService: ObservableObject {
         }
         restoreDisplayProfile(for: session)
         objectWillChange.send()
+    }
+
+    /// Applies a menu-bar choice and, if needed, rebuilds the virtual display
+    /// and stream. Display geometry cannot be changed in place, so the brief
+    /// stop/reconnect is deliberate and keeps the user on one quick action.
+    func reconfigure(_ session: TBDisplaySenderSession, mutation: () -> Void) {
+        let shouldReconnect = session.isConnected || session.isStreaming
+        if shouldReconnect {
+            session.stop()
+        }
+        mutation()
+        schedulePersist()
+        objectWillChange.send()
+        guard shouldReconnect else { return }
+        Task { @MainActor [weak session] in
+            try? await Task.sleep(nanoseconds: 450_000_000)
+            session?.connect()
+        }
     }
 
     func applyDisplayProfile(_ profile: TBDisplayProfile, to session: TBDisplaySenderSession) {

@@ -1082,6 +1082,10 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
     /// preset instead of the receiver-advertised 5120x2880. Removes the capture-side
     /// downsample and the GPU cost of rendering pixels that get thrown away.
     @Published var matchRenderToStream: Bool = false
+    /// Sends capture buffers without H.264/HEVC compression when the Receiver
+    /// explicitly advertises RAW NV12 support. This is intentionally opt-in:
+    /// 4096 x 2304 at 60 FPS is roughly 6.8 Gbit/s before protocol overhead.
+    @Published var rawNV12Experimental: Bool = false
 
     @Published var capturePreset: TBDisplayCapturePreset = .standard1440p {
         didSet {
@@ -2533,12 +2537,12 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
         return onlineDisplayIDs().contains(displayID)
     }
 
-    /// RAW remains an explicit diagnostic-only transport until a selectable
-    /// profile and sustained hardware tests prove it safe for normal sessions.
-    /// A Receiver must explicitly advertise support before the environment
-    /// override can enable it, so older builds never receive unknown frames.
+    /// RAW remains an explicit experimental transport. A Receiver must
+    /// explicitly advertise support, so older builds never receive packets they
+    /// cannot decode. The environment override remains useful for automation.
     private func rawNV12Enabled(for profile: TBMonitorDisplayProfile) -> Bool {
         guard profile.supportsRawNV12 == true else { return false }
+        if rawNV12Experimental { return true }
         guard let value = ProcessInfo.processInfo.environment["RAW"]?.lowercased() else { return false }
         return value == "1" || value == "true"
     }
