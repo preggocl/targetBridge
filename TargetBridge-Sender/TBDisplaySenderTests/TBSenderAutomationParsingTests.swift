@@ -51,6 +51,8 @@ final class TBSenderAutomationParsingTests: XCTestCase {
     // MARK: - parsePreset
 
     func testParsePresetAcceptsExactRawValues() {
+        XCTAssertEqual(TBSenderAutomation.parsePreset("intel4KHiDPI2048"), .intel4KHiDPI2048)
+        XCTAssertEqual(TBSenderAutomation.parsePreset("intel4KHiDPI2304"), .intel4KHiDPI2304)
         XCTAssertEqual(TBSenderAutomation.parsePreset("standard1440p"), .standard1440p)
         XCTAssertEqual(TBSenderAutomation.parsePreset("smooth1440p60"), .smooth1440p60)
         XCTAssertEqual(TBSenderAutomation.parsePreset("smooth1800p60"), .smooth1800p60)
@@ -60,6 +62,8 @@ final class TBSenderAutomationParsingTests: XCTestCase {
     }
 
     func testParsePresetAliases() {
+        XCTAssertEqual(TBSenderAutomation.parsePreset("2048x1152"), .intel4KHiDPI2048)
+        XCTAssertEqual(TBSenderAutomation.parsePreset("2304x1296"), .intel4KHiDPI2304)
         XCTAssertEqual(TBSenderAutomation.parsePreset("1440p"), .standard1440p)
         XCTAssertEqual(TBSenderAutomation.parsePreset("standard"), .standard1440p)
         XCTAssertEqual(TBSenderAutomation.parsePreset("1440p60"), .smooth1440p60)

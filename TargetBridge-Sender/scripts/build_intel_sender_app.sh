@@ -35,4 +35,5 @@ codesign --force --deep --sign - "$DEST_APP"
 
 echo "Built: $DEST_APP"
 file "$DEST_APP/Contents/MacOS/$PRODUCT_NAME"
-codesign -d --identifier "$DEST_APP" 2>&1
+codesign -dv "$DEST_APP" 2>&1
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$DEST_APP/Contents/Info.plist"

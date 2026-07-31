@@ -559,6 +559,10 @@ enum TBDisplaySenderL10n {
 extension TBDisplayCapturePreset {
     func title(_ language: TBDisplaySenderLanguage) -> String {
         switch self {
+        case .intel4KHiDPI2048:
+            return "4K HiDPI 2048"
+        case .intel4KHiDPI2304:
+            return "4K HiDPI 2304"
         case .standard1440p:
             return TBDisplaySenderL10n.text("sender.profile.standard", language)
         case .smooth1440p60:

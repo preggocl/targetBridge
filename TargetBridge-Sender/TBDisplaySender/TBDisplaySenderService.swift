@@ -11,6 +11,8 @@ import Network
 import VideoToolbox
 
 enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
+    case intel4KHiDPI2048
+    case intel4KHiDPI2304
     case standard1440p
     case smooth1440p60
     case smooth1800p60
@@ -22,6 +24,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
+        case .intel4KHiDPI2048:
+            return "4K HiDPI 2048"
+        case .intel4KHiDPI2304:
+            return "4K HiDPI 2304"
         case .standard1440p:
             return "Standard"
         case .smooth1440p60:
@@ -39,6 +45,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var description: String {
         switch self {
+        case .intel4KHiDPI2048:
+            return "2048 × 1152 @ 60"
+        case .intel4KHiDPI2304:
+            return "2304 × 1296 @ 60"
         case .standard1440p:
             return "2560 × 1440"
         case .smooth1440p60:
@@ -56,6 +66,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var width: Int {
         switch self {
+        case .intel4KHiDPI2048:
+            return 2048
+        case .intel4KHiDPI2304:
+            return 2304
         case .standard1440p, .smooth1440p60:
             return 2560
         case .smooth1800p60:
@@ -69,6 +83,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var height: Int {
         switch self {
+        case .intel4KHiDPI2048:
+            return 1152
+        case .intel4KHiDPI2304:
+            return 1296
         case .standard1440p, .smooth1440p60:
             return 1440
         case .smooth1800p60:
@@ -82,6 +100,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var averageBitRate: Int {
         switch self {
+        case .intel4KHiDPI2048:
+            return 32_000_000
+        case .intel4KHiDPI2304:
+            return 40_000_000
         case .standard1440p:
             return 36_000_000
         case .smooth1440p60:
@@ -99,7 +121,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var codecName: String {
         switch self {
-        case .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
             return "H.264"
         case .crisp2160p60, .native5k, .native5k60Experimental:
             return "HEVC"
@@ -108,7 +130,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var codecType: CMVideoCodecType {
         switch self {
-        case .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
             return kCMVideoCodecType_H264
         case .crisp2160p60, .native5k, .native5k60Experimental:
             return kCMVideoCodecType_HEVC
@@ -124,6 +146,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var expectedFrameRate: Int {
         switch self {
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 60
         case .standard1440p:
             return 30
         case .smooth1440p60:
@@ -141,6 +165,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var maxKeyFrameInterval: Int {
         switch self {
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 60
         case .standard1440p:
             return 60
         case .smooth1440p60:
@@ -158,6 +184,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var maxKeyFrameIntervalDuration: Int {
         switch self {
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 1
         case .standard1440p:
             return 2
         case .smooth1440p60:
@@ -173,7 +201,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
         switch self {
         case .standard1440p:
             return false
-        case .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
             return true
         }
     }
@@ -189,7 +217,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
         switch self {
         case .standard1440p:
             return 1
-        case .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
             return 0
         }
     }
@@ -198,7 +226,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
         switch self {
         case .standard1440p:
             return false
-        case .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
             return true
         }
     }
@@ -212,7 +240,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var captureResolution: SCCaptureResolutionType {
         switch self {
-        case .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
             return .nominal
         case .crisp2160p60, .native5k, .native5k60Experimental:
             return .best
@@ -221,6 +249,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var virtualDisplayRefreshRate: Double {
         switch self {
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 60
         case .standard1440p:
             return 60
         case .smooth1440p60, .smooth1800p60:
@@ -486,7 +516,7 @@ private final class TBVideoPipeline: @unchecked Sendable {
         }
 
         var session: VTCompressionSession?
-        guard VTCompressionSessionCreate(
+        let createStatus = VTCompressionSessionCreate(
             allocator: nil,
             width: Int32(preset.width),
             height: Int32(preset.height),
@@ -497,7 +527,9 @@ private final class TBVideoPipeline: @unchecked Sendable {
             outputCallback: callback,
             refcon: retained.toOpaque(),
             compressionSessionOut: &session
-        ) == noErr, let session else {
+        )
+        guard createStatus == noErr, let session else {
+            TBLog.connection.error("videotoolbox: create failed codec=\(self.codecType == kCMVideoCodecType_HEVC ? "HEVC" : "H.264", privacy: .public) resolution=\(self.preset.width)x\(self.preset.height) fps=\(self.preset.expectedFrameRate) bitrate=\(self.preset.averageBitRate) status=\(createStatus) fallback=none")
             retained.release()
             vtEncoderRef = nil
             return
@@ -518,7 +550,14 @@ private final class TBVideoPipeline: @unchecked Sendable {
         if preset.prioritizeSpeed {
             VTSessionSetProperty(session, key: kVTCompressionPropertyKey_PrioritizeEncodingSpeedOverQuality, value: kCFBooleanTrue)
         }
-        VTCompressionSessionPrepareToEncodeFrames(session)
+        let prepareStatus = VTCompressionSessionPrepareToEncodeFrames(session)
+        var encoderID: CFTypeRef?
+        var hardwareValue: CFTypeRef?
+        VTSessionCopyProperty(session, key: kVTCompressionPropertyKey_EncoderID, allocator: nil, valueOut: &encoderID)
+        VTSessionCopyProperty(session, key: kVTCompressionPropertyKey_UsingHardwareAcceleratedVideoEncoder, allocator: nil, valueOut: &hardwareValue)
+        let encoderName = (encoderID as? String) ?? "unknown"
+        let hardware = (hardwareValue as? Bool) ?? false
+        TBLog.connection.info("videotoolbox: selected codec=\(self.codecType == kCMVideoCodecType_HEVC ? "HEVC" : "H.264", privacy: .public) encoder=\(encoderName, privacy: .public) hardware=\(hardware) resolution=\(self.preset.width)x\(self.preset.height) fps=\(self.preset.expectedFrameRate) bitrate=\(self.preset.averageBitRate) prepareStatus=\(prepareStatus) fallback=none")
         vtEncoder = session
     }
 
@@ -607,6 +646,7 @@ private final class TBVideoPipeline: @unchecked Sendable {
         )
         if status != noErr {
             inFlightEncodeFrames = max(0, inFlightEncodeFrames - 1)
+            TBLog.connection.error("videotoolbox: encode error codec=\(self.codecType == kCMVideoCodecType_HEVC ? "HEVC" : "H.264", privacy: .public) resolution=\(self.preset.width)x\(self.preset.height) fps=\(self.preset.expectedFrameRate) bitrate=\(self.preset.averageBitRate) status=\(status)")
         }
     }
 
@@ -1229,11 +1269,13 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
 
     private func resolvedCodecType(for preset: TBDisplayCapturePreset, profile: TBMonitorDisplayProfile?) -> CMVideoCodecType {
         switch preset {
-        case .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
             let receiverSupportsHEVC = profile?.supportsHEVCDecode ?? receiverSupportsHEVCDecodeHint ?? false
             if receiverSupportsHEVC, Self.probeHEVCHardwareEncoderSupport() {
+                TBLog.connection.info("videotoolbox: HEVC hardware available; selected HEVC for preset=\(preset.rawValue, privacy: .public)")
                 return kCMVideoCodecType_HEVC
             }
+            TBLog.connection.info("videotoolbox: fallback=H.264 reason=\(receiverSupportsHEVC ? "HEVC hardware unavailable" : "receiver HEVC unavailable", privacy: .public) preset=\(preset.rawValue, privacy: .public)")
             return kCMVideoCodecType_H264
         case .crisp2160p60, .native5k, .native5k60Experimental:
             return preset.codecType
@@ -3053,6 +3095,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
                 liveMetrics.senderFPS = fps
                 senderFPS = fps
                 sentSnapshot = total
+                TBLog.connection.info("stream: fps=\(fps) bitrate=\(self.capturePreset.averageBitRate) resolution=\(self.capturePreset.width)x\(self.capturePreset.height) codec=\(self.activeCodecName ?? self.capturePreset.codecName, privacy: .public) transport=\(self.transportKind.rawValue, privacy: .public) interface=\(self.connectInterfaceName ?? "unknown", privacy: .public)")
             }
         }
     }
