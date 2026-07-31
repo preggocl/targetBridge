@@ -778,7 +778,12 @@ final class TBDisplaySenderService: ObservableObject {
                 NI_NUMERICHOST
             ) == 0 else { continue }
             let ip = String(cString: buffer)
-            if name.hasPrefix("bridge"), ip.hasPrefix("169.254.") {
+            // Thunderbolt Bridge may use either its automatic 169.254/16
+            // address or a user-assigned private IPv4 address (for example
+            // 10.0.0.1/24). The interface identity is the reliable signal;
+            // requiring link-local addressing incorrectly hides valid static
+            // Thunderbolt configurations from the session picker.
+            if name.hasPrefix("bridge") {
                 interfaces.append(TBLocalLinkInterface(name: name, ip: ip, transportKind: .thunderboltBridge))
                 continue
             }
