@@ -2,6 +2,13 @@ import XCTest
 @testable import TargetBridge
 
 final class TBDisplayProfileTests: XCTestCase {
+    func testWork4KProfileUses2048HiDPI() {
+        let settings = TBDisplayProfile.work4K.settings
+        XCTAssertEqual(settings.captureSource, .extendedDesktop)
+        XCTAssertEqual(settings.capturePreset, .intel4KHiDPI2048)
+        XCTAssertTrue(settings.matchRenderToStream)
+        XCTAssertFalse(settings.audioEnabled)
+    }
     func testWork5KUsesAnExtendedNative5KDisplay() {
         let settings = TBDisplayProfile.work5K.settings
 

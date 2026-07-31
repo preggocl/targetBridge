@@ -46,9 +46,9 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
     var description: String {
         switch self {
         case .intel4KHiDPI2048:
-            return "2048 × 1152 @ 60"
+            return "2048 × 1152 HiDPI · 4096 × 2304 stream @ 60"
         case .intel4KHiDPI2304:
-            return "2304 × 1296 @ 60"
+            return "2304 × 1296 HiDPI · 4096 × 2304 stream @ 60"
         case .standard1440p:
             return "2560 × 1440"
         case .smooth1440p60:
@@ -66,10 +66,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var width: Int {
         switch self {
-        case .intel4KHiDPI2048:
-            return 2048
-        case .intel4KHiDPI2304:
-            return 2304
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 4096
         case .standard1440p, .smooth1440p60:
             return 2560
         case .smooth1800p60:
@@ -83,10 +81,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var height: Int {
         switch self {
-        case .intel4KHiDPI2048:
-            return 1152
-        case .intel4KHiDPI2304:
-            return 1296
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 2304
         case .standard1440p, .smooth1440p60:
             return 1440
         case .smooth1800p60:
@@ -100,10 +96,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var averageBitRate: Int {
         switch self {
-        case .intel4KHiDPI2048:
-            return 32_000_000
-        case .intel4KHiDPI2304:
-            return 40_000_000
+        case .intel4KHiDPI2048, .intel4KHiDPI2304:
+            return 80_000_000
         case .standard1440p:
             return 36_000_000
         case .smooth1440p60:
@@ -121,18 +115,18 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var codecName: String {
         switch self {
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .standard1440p, .smooth1440p60, .smooth1800p60:
             return "H.264"
-        case .crisp2160p60, .native5k, .native5k60Experimental:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .crisp2160p60, .native5k, .native5k60Experimental:
             return "HEVC"
         }
     }
 
     var codecType: CMVideoCodecType {
         switch self {
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .standard1440p, .smooth1440p60, .smooth1800p60:
             return kCMVideoCodecType_H264
-        case .crisp2160p60, .native5k, .native5k60Experimental:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .crisp2160p60, .native5k, .native5k60Experimental:
             return kCMVideoCodecType_HEVC
         }
     }
@@ -271,12 +265,20 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
     /// Costs screen real estate: the desktop reports "looks like w/2 x h/2" rather
     /// than the receiver's default 2560 x 1440.
     var renderMatchedDisplayMode: TBVirtualDisplayModeSize {
-        TBVirtualDisplayModeSize(width: width / 2, height: height / 2)
+        switch self {
+        case .intel4KHiDPI2048:
+            return TBVirtualDisplayModeSize(width: 2048, height: 1152)
+        case .intel4KHiDPI2304:
+            return TBVirtualDisplayModeSize(width: 2304, height: 1296)
+        default:
+            return TBVirtualDisplayModeSize(width: width / 2, height: height / 2)
+        }
     }
 
     /// Logical desktop size the user ends up with under render matching.
     var renderMatchedDesktopDescription: String {
-        "\(width / 2) × \(height / 2)"
+        let mode = renderMatchedDisplayMode
+        return "\(mode.width) × \(mode.height)"
     }
 }
 
@@ -1269,7 +1271,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
 
     private func resolvedCodecType(for preset: TBDisplayCapturePreset, profile: TBMonitorDisplayProfile?) -> CMVideoCodecType {
         switch preset {
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .standard1440p, .smooth1440p60, .smooth1800p60:
             let receiverSupportsHEVC = profile?.supportsHEVCDecode ?? receiverSupportsHEVCDecodeHint ?? false
             if receiverSupportsHEVC, Self.probeHEVCHardwareEncoderSupport() {
                 TBLog.connection.info("videotoolbox: HEVC hardware available; selected HEVC for preset=\(preset.rawValue, privacy: .public)")
@@ -1277,7 +1279,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
             }
             TBLog.connection.info("videotoolbox: fallback=H.264 reason=\(receiverSupportsHEVC ? "HEVC hardware unavailable" : "receiver HEVC unavailable", privacy: .public) preset=\(preset.rawValue, privacy: .public)")
             return kCMVideoCodecType_H264
-        case .crisp2160p60, .native5k, .native5k60Experimental:
+        case .intel4KHiDPI2048, .intel4KHiDPI2304, .crisp2160p60, .native5k, .native5k60Experimental:
             return preset.codecType
         }
     }

@@ -79,6 +79,20 @@ final class TBSenderAutomationParsingTests: XCTestCase {
         XCTAssertEqual(TBSenderAutomation.parsePreset("5120x2880"), .native5k)
     }
 
+    func testIntel4KHiDPIPresetsSeparateLogicalModeFromHardwareStream() {
+        let compact = TBDisplayCapturePreset.intel4KHiDPI2048
+        XCTAssertEqual(compact.width, 4096)
+        XCTAssertEqual(compact.height, 2304)
+        XCTAssertEqual(compact.renderMatchedDisplayMode, TBVirtualDisplayModeSize(width: 2048, height: 1152))
+        XCTAssertEqual(compact.codecName, "HEVC")
+
+        let spacious = TBDisplayCapturePreset.intel4KHiDPI2304
+        XCTAssertEqual(spacious.width, 4096)
+        XCTAssertEqual(spacious.height, 2304)
+        XCTAssertEqual(spacious.renderMatchedDisplayMode, TBVirtualDisplayModeSize(width: 2304, height: 1296))
+        XCTAssertEqual(spacious.codecName, "HEVC")
+    }
+
     func testParsePresetRejectsUnknown() {
         XCTAssertNil(TBSenderAutomation.parsePreset("bogus"))
         XCTAssertNil(TBSenderAutomation.parsePreset(""))

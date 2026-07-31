@@ -32,11 +32,16 @@ enum TBDisplaySenderLanguage: String, CaseIterable, Identifiable {
     }
 
     static func load() -> TBDisplaySenderLanguage {
-        guard let raw = UserDefaults.standard.string(forKey: defaultsKey),
-              let language = TBDisplaySenderLanguage(rawValue: raw) else {
-            return .italian
+        if let raw = UserDefaults.standard.string(forKey: defaultsKey),
+           let language = TBDisplaySenderLanguage(rawValue: raw) {
+            return language
         }
-        return language
+        let preferred = Locale.preferredLanguages.first?.lowercased() ?? "en"
+        if preferred.hasPrefix("it") { return .italian }
+        if preferred.hasPrefix("de") { return .german }
+        if preferred.hasPrefix("fr") { return .french }
+        if preferred.hasPrefix("zh") { return .chinese }
+        return .english
     }
 
     func persist() {
@@ -259,6 +264,8 @@ enum TBDisplaySenderL10n {
 
     static func displayProfileTitle(_ profile: TBDisplayProfile, language: TBDisplaySenderLanguage) -> String {
         switch profile {
+        case .work4K:
+            return "Work 4K"
         case .work5K:
             return text("sender.display_profiles.work_5k", language)
         case .lowLatency:
