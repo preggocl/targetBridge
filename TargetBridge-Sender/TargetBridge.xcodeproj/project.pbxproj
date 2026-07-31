@@ -35,6 +35,7 @@
 		8D544352D7E2E226D551E46E /* TBInputBindingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FE01BF2EA2F329442890AD /* TBInputBindingsView.swift */; };
 		8D9D2A40A1CD90BD4D4DFC2C /* TBDisplaySenderAutomation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CEA5EB707F01E1708DA9170 /* TBDisplaySenderAutomation.swift */; };
 		96DDF119DE60DFBA437D32D2 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = D386D0FCD0F93494220CC3DC /* en.json */; };
+		A6E500000000000000000001 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = A6E500000000000000000002 /* es.json */; };
 		9B07E096AE81E351B6D1E17C /* fr.json in Resources */ = {isa = PBXBuildFile; fileRef = 73EDC0FF3A4EA4DC1ED63528 /* fr.json */; };
 		A3FD74604472363535D63273 /* TBDisplaySenderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95D015FB8DF172C7418CB5D /* TBDisplaySenderSettingsView.swift */; };
 		B9FA5989F04108E9FBFA8D3B /* TBDisplaySenderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD235429FA67D231F565C93E /* TBDisplaySenderApp.swift */; };
@@ -103,6 +104,7 @@
 		CD235429FA67D231F565C93E /* TBDisplaySenderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBDisplaySenderApp.swift; sourceTree = "<group>"; };
 		CEB4DF6C72B5C50C29AE6E45 /* TBDisplaySenderBuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBDisplaySenderBuildInfo.swift; sourceTree = "<group>"; };
 		D386D0FCD0F93494220CC3DC /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
+		A6E500000000000000000002 /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		D419C88EEEA66EE0829BA975 /* TBDisplayProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBDisplayProfileTests.swift; sourceTree = "<group>"; };
 		DA01317B43B46B1B323A7008 /* TBMonitorProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBMonitorProtocol.swift; sourceTree = "<group>"; };
 		DD33D06A2FA6BA7E075A9E46 /* TBDisplaySenderSurfaceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBDisplaySenderSurfaceViews.swift; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 			children = (
 				C3658E86F5BE2168F4591491 /* de.json */,
 				D386D0FCD0F93494220CC3DC /* en.json */,
+				A6E500000000000000000002 /* es.json */,
 				73EDC0FF3A4EA4DC1ED63528 /* fr.json */,
 				036E14097FA59989FFC456FD /* it.json */,
 				C9AA5BB4EE39D2C6FB37B90F /* zh.json */,
@@ -319,6 +322,7 @@
 				BF146F68BB365CFE5AA9A1BD /* check_localizations.sh in Resources */,
 				7F1AE9053DA59169FB761FAA /* de.json in Resources */,
 				96DDF119DE60DFBA437D32D2 /* en.json in Resources */,
+				A6E500000000000000000001 /* es.json in Resources */,
 				9B07E096AE81E351B6D1E17C /* fr.json in Resources */,
 				233BAEE5ABED3F316F9D3D12 /* input-dockstation.json in Resources */,
 				7FB34AA1E75B01E7D1EC3E21 /* it.json in Resources */,
@@ -346,7 +350,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nif [[ \"${PRODUCT_BUNDLE_IDENTIFIER}\" == \"com.targetbridge.intel-sender\" ]]; then\n    exit 0\nfi\nSTAMP=\"$(date +%Y%m%d%H%M%S)\"\ncat > \"${SRCROOT}/TBDisplaySender/TBDisplaySenderBuildInfo.swift\" <<EOI\nenum TBDisplaySenderBuildInfo {\n    static let marketingVersion = \"3.3.0\"\n    static let buildNumber = \"${STAMP}\"\n    static let versionDisplay = \"\\\\(marketingVersion) + build \\\\(buildNumber)\"\n}\nEOI\n";
+			shellScript = "set -euo pipefail\nif [[ \"${PRODUCT_BUNDLE_IDENTIFIER}\" == \"com.targetbridge.intel-sender\" ]]; then\n    exit 0\nfi\nSTAMP=\"$(date +%Y%m%d%H%M%S)\"\ncat > \"${SRCROOT}/TBDisplaySender/TBDisplaySenderBuildInfo.swift\" <<EOI\nimport Foundation\n\nenum TBDisplaySenderBuildInfo {\n    static let marketingVersion = \"3.3.0\"\n    static let buildNumber = \"${STAMP}\"\n    static var versionDisplay: String {\n        let version = Bundle.main.bundleIdentifier == \"com.targetbridge.intel-sender\"\n            ? \"\\\\(marketingVersion)-intel.1\"\n            : marketingVersion\n        return \"\\\\(version) + build \\\\(buildNumber)\"\n    }\n}\nEOI\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

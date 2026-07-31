@@ -3,6 +3,7 @@ import ApplicationServices
 import Combine
 import Foundation
 import Network
+import ServiceManagement
 
 enum TBTransportKind: String, CaseIterable, Identifiable {
     case thunderboltBridge
@@ -13,12 +14,12 @@ enum TBTransportKind: String, CaseIterable, Identifiable {
     func title(_ language: TBDisplaySenderLanguage) -> String {
         switch (self, language) {
         case (.thunderboltBridge, .italian): return "Thunderbolt Bridge"
-        case (.thunderboltBridge, .english): return "Thunderbolt Bridge"
+        case (.thunderboltBridge, .english), (.thunderboltBridge, .spanish): return "Thunderbolt Bridge"
         case (.thunderboltBridge, .german): return "Thunderbolt Bridge"
         case (.thunderboltBridge, .french): return "Thunderbolt Bridge"
         case (.thunderboltBridge, .chinese): return "Thunderbolt Bridge"
         case (.networkLink, .italian): return "Network Link (sperimentale)"
-        case (.networkLink, .english): return "Network Link (experimental)"
+        case (.networkLink, .english), (.networkLink, .spanish): return "Network Link (experimental)"
         case (.networkLink, .german): return "Network Link (experimentell)"
         case (.networkLink, .french): return "Network Link (expérimental)"
         case (.networkLink, .chinese): return "Network Link（实验性）"
@@ -58,6 +59,13 @@ final class TBDisplaySenderService: ObservableObject {
         }
     }
     @Published var showsMenuBarIcon = true
+    @Published private(set) var launchesAtLogin = SMAppService.mainApp.status == .enabled
+    @Published var connectsAtLaunch: Bool = UserDefaults.standard.bool(forKey: "fd.tbdisplaysender.connectsAtLaunch") {
+        didSet {
+            UserDefaults.standard.set(connectsAtLaunch, forKey: "fd.tbdisplaysender.connectsAtLaunch")
+        }
+    }
+    @Published private(set) var launchAtLoginError: String?
     @Published var largeCursor: Bool = UserDefaults.standard.bool(forKey: "fd.tbdisplaysender.largeCursor") {
         didSet {
             UserDefaults.standard.set(largeCursor, forKey: "fd.tbdisplaysender.largeCursor")
@@ -142,6 +150,37 @@ final class TBDisplaySenderService: ObservableObject {
 
     func refreshPrivacyPermissions() {
         privacyPermissionsRevision &+= 1
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+            launchesAtLogin = enabled
+            launchAtLoginError = nil
+        } catch {
+            launchesAtLogin = SMAppService.mainApp.status == .enabled
+            launchAtLoginError = error.localizedDescription
+        }
+    }
+
+    func connectConfiguredSessionsAtLaunch() {
+        guard connectsAtLaunch else { return }
+        Task { @MainActor [weak self] in
+            // Allow interfaces and Bonjour discovery to settle after login.
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            guard let self else { return }
+            refreshLocalInterfaces()
+            for session in sessions where !session.receiverIP.isEmpty {
+                if session.localInterfaceIP.isEmpty {
+                    session.localInterfaceIP = defaultLocalInterfaceIP(for: session.transportKind)
+                }
+                session.connect()
+            }
+        }
     }
 
     var anyConnected: Bool {

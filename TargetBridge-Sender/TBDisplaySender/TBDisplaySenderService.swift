@@ -3150,7 +3150,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
                 let timeoutMessage: String
                 switch self.language {
                 case .italian: timeoutMessage = "Connessione scaduta"
-                case .english: timeoutMessage = "Connection timed out"
+                case .english, .spanish: timeoutMessage = "Connection timed out"
                 case .german: timeoutMessage = "Verbindungs-Zeitüberschreitung"
                 case .french: timeoutMessage = "Délai de connexion dépassé"
                 case .chinese: timeoutMessage = "连接超时"

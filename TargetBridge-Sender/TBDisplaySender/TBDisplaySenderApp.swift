@@ -12,6 +12,7 @@ struct TBDisplaySenderApp: App {
                 .task {
                     statusItemController.activate()
                     TBSenderAutomation.handleLaunchArguments(CommandLine.arguments)
+                    service.connectConfiguredSessionsAtLaunch()
                 }
                 .onOpenURL { url in
                     TBSenderAutomation.handle(url: url)
