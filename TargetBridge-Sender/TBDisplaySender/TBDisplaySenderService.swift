@@ -1135,6 +1135,12 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
     private var activeCodecType: CMVideoCodecType?
     private var activeCodecName: String?
 
+    var menuBarCodecLabel: String? {
+        guard isStreaming, let activeCodecName else { return nil }
+        if activeCodecName == "NV12 RAW" { return "RAW" }
+        return activeCodecName
+    }
+
     private var captureDelegate: CaptureDelegate?
     private var scStream: SCStream?
     private var directDisplayStream: TBDirectDisplayStreamCapture?

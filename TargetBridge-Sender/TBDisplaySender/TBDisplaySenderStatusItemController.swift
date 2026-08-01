@@ -102,15 +102,37 @@ final class TBDisplaySenderStatusItemController: NSObject {
     private func refreshStatusItem() {
         guard let item = statusItem else { return }
         item.button?.toolTip = TBDisplaySenderL10n.topBarToolTip(service.language)
-        if service.anyConnected,
-           let connectedImage = NSImage(systemSymbolName: "display.2", accessibilityDescription: "TargetBridge connected")?
-            .withSymbolConfiguration(.init(paletteColors: [.systemGreen])) {
+        let codecLabels = Set(service.sessions.compactMap(\.menuBarCodecLabel))
+        let codecLabel = codecLabels.count == 1 ? codecLabels.first : (codecLabels.isEmpty ? nil : "MIX")
+        if service.anyConnected {
+            let colors = statusColors(for: codecLabel)
+            guard let connectedImage = NSImage(systemSymbolName: "display.2", accessibilityDescription: "TargetBridge connected")?
+                .withSymbolConfiguration(.init(paletteColors: [colors.primary, colors.secondary])) else { return }
             connectedImage.isTemplate = false
             item.button?.image = connectedImage
+            item.button?.imagePosition = .imageLeading
+            item.button?.attributedTitle = NSAttributedString(
+                string: codecLabel.map { " \($0)" } ?? "",
+                attributes: [
+                    .foregroundColor: colors.primary,
+                    .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .semibold)
+                ]
+            )
         } else {
             let idleImage = NSImage(systemSymbolName: "display.2", accessibilityDescription: "TargetBridge")
             idleImage?.isTemplate = true
             item.button?.image = idleImage
+            item.button?.imagePosition = .imageOnly
+            item.button?.title = ""
+        }
+    }
+
+    private func statusColors(for codec: String?) -> (primary: NSColor, secondary: NSColor) {
+        switch codec {
+        case "H.264": return (.systemBlue, .systemIndigo)
+        case "RAW": return (.systemOrange, .systemBrown)
+        case "MIX": return (.systemPurple, .systemIndigo)
+        default: return (.systemGreen, .systemTeal)
         }
     }
 

@@ -1,14 +1,132 @@
+import AppKit
 import SwiftUI
 
-struct TBDisplaySenderContentView: View {
-    private enum InspectorRoute: Equatable {
+@MainActor
+private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelegate {
+    private enum Route: Equatable {
         case general
         case session(UUID)
     }
 
+    static let shared = TBDisplaySenderSidePanelController()
+
+    private weak var parentWindow: NSWindow?
+    private var panel: NSPanel?
+    private var route: Route?
+    private var observers: [NSObjectProtocol] = []
+
+    func toggleGeneral(service: TBDisplaySenderService) {
+        toggle(.general, service: service)
+    }
+
+    func toggleSession(_ session: TBDisplaySenderSession, service: TBDisplaySenderService) {
+        toggle(.session(session.id), service: service)
+    }
+
+    private func toggle(_ newRoute: Route, service: TBDisplaySenderService) {
+        if route == newRoute, panel?.isVisible == true {
+            close()
+            return
+        }
+
+        guard let parent = NSApp.keyWindow ?? NSApp.mainWindow else { return }
+        route = newRoute
+        let content: AnyView
+        switch newRoute {
+        case .general:
+            content = AnyView(TBDisplaySenderSettingsView(service: service))
+        case .session(let id):
+            guard let session = service.sessions.first(where: { $0.id == id }) else { return }
+            content = AnyView(TBDisplaySenderSessionSettingsSheet(service: service, session: session) { [weak self] in
+                self?.close()
+            })
+        }
+
+        show(content, attachedTo: parent)
+    }
+
+    private func show(_ content: AnyView, attachedTo parent: NSWindow) {
+        let panel = panel ?? makePanel()
+        panel.contentViewController = NSHostingController(rootView: content)
+
+        if parentWindow !== parent {
+            detachFromParent()
+            parentWindow = parent
+            parent.addChildWindow(panel, ordered: .above)
+            observe(parent)
+        }
+
+        positionPanel()
+        panel.orderFront(nil)
+        self.panel = panel
+    }
+
+    private func makePanel() -> NSPanel {
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 410, height: 700),
+            styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        panel.titleVisibility = .hidden
+        panel.titlebarAppearsTransparent = true
+        panel.isReleasedWhenClosed = false
+        panel.hidesOnDeactivate = false
+        panel.minSize = NSSize(width: 340, height: 420)
+        panel.maxSize = NSSize(width: 470, height: 1_400)
+        panel.delegate = self
+        return panel
+    }
+
+    private func observe(_ parent: NSWindow) {
+        let center = NotificationCenter.default
+        for name in [NSWindow.didMoveNotification, NSWindow.didResizeNotification, NSWindow.didChangeScreenNotification] {
+            observers.append(center.addObserver(forName: name, object: parent, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.positionPanel() }
+            })
+        }
+    }
+
+    private func positionPanel() {
+        guard let parent = parentWindow, let panel, let screen = parent.screen else { return }
+        let visible = screen.visibleFrame
+        let parentFrame = parent.frame
+        let rightSpace = visible.maxX - parentFrame.maxX
+        let leftSpace = parentFrame.minX - visible.minX
+        let availableSide = max(rightSpace, leftSpace)
+        let width = min(430, max(340, availableSide - 8))
+        let height = min(parentFrame.height, visible.height)
+        let useRight = rightSpace >= width || rightSpace >= leftSpace
+        let proposedX = useRight ? parentFrame.maxX + 1 : parentFrame.minX - width - 1
+        let x = min(max(proposedX, visible.minX), visible.maxX - width)
+        let y = min(parentFrame.maxY, visible.maxY) - height
+        panel.setFrame(NSRect(x: x, y: y, width: width, height: height), display: true)
+    }
+
+    func close() {
+        panel?.orderOut(nil)
+        route = nil
+        detachFromParent()
+    }
+
+    private func detachFromParent() {
+        if let panel, let parentWindow {
+            parentWindow.removeChildWindow(panel)
+        }
+        observers.forEach(NotificationCenter.default.removeObserver)
+        observers.removeAll()
+        parentWindow = nil
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        route = nil
+        detachFromParent()
+    }
+}
+
+struct TBDisplaySenderContentView: View {
     @ObservedObject var service: TBDisplaySenderService
     @State private var showingAbout = false
-    @State private var inspectorRoute: InspectorRoute?
 
     var body: some View {
         ScrollView {
@@ -18,7 +136,7 @@ struct TBDisplaySenderContentView: View {
 
                 ForEach(service.sessions) { session in
                     TBDisplaySenderSessionCard(service: service, session: session) {
-                        toggleInspector(.session(session.id))
+                        TBDisplaySenderSidePanelController.shared.toggleSession(session, service: service)
                     }
                 }
 
@@ -39,10 +157,6 @@ struct TBDisplaySenderContentView: View {
         .sheet(isPresented: $showingAbout) {
             TBDisplaySenderAboutView(service: service)
         }
-        .inspector(isPresented: inspectorPresented) {
-            inspectorContent
-                .inspectorColumnWidth(min: 380, ideal: 430, max: 500)
-        }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -52,39 +166,12 @@ struct TBDisplaySenderContentView: View {
                 }
 
                 Button {
-                    toggleInspector(.general)
+                    TBDisplaySenderSidePanelController.shared.toggleGeneral(service: service)
                 } label: {
                     Label(settingsToolbarTitle, systemImage: "slider.horizontal.3")
                 }
             }
         }
-    }
-
-    private var inspectorPresented: Binding<Bool> {
-        Binding(
-            get: { inspectorRoute != nil },
-            set: { if !$0 { inspectorRoute = nil } }
-        )
-    }
-
-    @ViewBuilder
-    private var inspectorContent: some View {
-        switch inspectorRoute {
-        case .general:
-            TBDisplaySenderSettingsView(service: service)
-        case .session(let id):
-            if let session = service.sessions.first(where: { $0.id == id }) {
-                TBDisplaySenderSessionSettingsSheet(service: service, session: session) {
-                    inspectorRoute = nil
-                }
-            }
-        case nil:
-            EmptyView()
-        }
-    }
-
-    private func toggleInspector(_ route: InspectorRoute) {
-        inspectorRoute = inspectorRoute == route ? nil : route
     }
 
     private var headerCard: some View {
