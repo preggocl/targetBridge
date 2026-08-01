@@ -15,8 +15,7 @@ repackaging the Receiver.
   `bridge*` address and netmask, without hardcoded subnets or network changes.
 - Intel VideoToolbox hardware H.264 and HEVC selection with fallback telemetry.
 - 4K HiDPI profiles prioritizing logical 2048 x 1152 and 2304 x 1296.
-- Work 4K, Work 5K, Low Latency and Presentation quick profiles.
-- Duplicate Desktop and Extended Desktop modes.
+- `Work 4K` quick profile for the validated 21.5-inch 4K iMac workflow.
 - Experimental RAW NV12 transport when the Receiver advertises support.
 - Spanish UI with automatic language selection and English fallback.
 - Menu-bar controls for displays, Receivers, display modes, profiles and brightness.
@@ -37,6 +36,7 @@ This preview also retains these upstream TargetBridge capabilities. They are
 not claimed as new work by the Intel fork:
 
 - Cable Test throughput measurement and guided connection diagnostics.
+- `Work 5K`, `Low Latency` and `Presentation` quick profiles.
 - Duplicate and Extended Desktop streaming, Thunderbolt Bridge transport and
   experimental Network Link.
 - Audio Relay, Input Dockstation, remote brightness, multi-Receiver sessions

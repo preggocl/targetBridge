@@ -51,8 +51,8 @@ Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
   greater than its codec-latency saving.
 - Better Thunderbolt Bridge recognition without changing network services or
   disabling Wi-Fi.
-- Quick controls in one menu-bar item: displays, Receivers, duplicate/extended
-  mode, profiles, codec state and brightness.
+- Intel-specific menu-bar presentation for quick access to displays, Receivers,
+  inherited modes and profiles, codec state and brightness.
 - Spanish localization, automatic language selection and English fallback.
 - Optional launch at login and login-only reconnection. Opening the app
   manually does not trigger automatic connection.
@@ -69,6 +69,7 @@ included in this fork because they remain part of the Sender workflow, but are
 not presented as original Intel-fork development:
 
 - Cable Test throughput measurement and guided connection diagnostics.
+- `Work 5K`, `Low Latency` and `Presentation` quick profiles.
 - Duplicate and Extended Desktop streaming modes.
 - Thunderbolt Bridge transport, experimental Network Link, and multi-Receiver
   sessions.
