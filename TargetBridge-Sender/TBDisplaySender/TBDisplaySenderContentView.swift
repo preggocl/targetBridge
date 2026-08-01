@@ -511,14 +511,21 @@ private struct TBDisplaySenderSessionCard: View {
             }
 
             HStack(spacing: 10) {
-                Button(session.isConnected ? TBDisplaySenderL10n.stopButton(service.language) : TBDisplaySenderL10n.connectButton(service.language)) {
+                Button {
                     if session.isConnected {
                         session.stop()
                     } else {
                         session.connect()
                     }
+                } label: {
+                    Label(
+                        session.isConnected ? TBDisplaySenderL10n.stopButton(service.language) : TBDisplaySenderL10n.connectButton(service.language),
+                        systemImage: session.isConnected ? "stop.fill" : "play.fill"
+                    )
+                    .frame(minWidth: 150)
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(!session.isConnected && (trimmedReceiverIP.isEmpty || session.localInterfaceIP.isEmpty))
 
                 Button {
@@ -527,11 +534,13 @@ private struct TBDisplaySenderSessionCard: View {
                     Label(TBDisplaySenderL10n.showSettings(service.language), systemImage: "gearshape.2")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
 
                 Button(TBDisplaySenderL10n.removeSessionButton(service.language)) {
                     service.removeSession(session)
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
                 .disabled(service.sessions.count == 1 || session.isConnected || session.isStreaming)
             }
         }
