@@ -107,8 +107,14 @@ final class TBReceiverDiscovery: NSObject, ObservableObject {
 
         let receiverName = stringValue("name").isEmpty ? service.name : stringValue("name")
         let receiverIP = stringValue("ip")
-        let thunderboltIP = stringValue("tbIP")
-        let networkIP = stringValue("netIP")
+        let publishedThunderboltIP = stringValue("tbIP")
+        let resolvedAddresses = resolvedIPv4Addresses(for: service)
+        let inferredThunderboltIP = resolvedAddresses.first(where: isOnLocalThunderboltSubnet)
+        let thunderboltIP = !publishedThunderboltIP.isEmpty ? publishedThunderboltIP : (inferredThunderboltIP ?? "")
+        let publishedNetworkIP = stringValue("netIP")
+        let networkIP = !publishedNetworkIP.isEmpty
+            ? publishedNetworkIP
+            : (resolvedAddresses.first { $0 != thunderboltIP } ?? "")
         let preferredIP = !receiverIP.isEmpty ? receiverIP : (!thunderboltIP.isEmpty ? thunderboltIP : networkIP)
         guard !preferredIP.isEmpty else { return }
 
@@ -152,6 +158,55 @@ final class TBReceiverDiscovery: NSObject, ObservableObject {
             }
             return lhs.receiverName.localizedCaseInsensitiveCompare(rhs.receiverName) == .orderedAscending
         }
+    }
+
+    private func resolvedIPv4Addresses(for service: NetService) -> [String] {
+        (service.addresses ?? []).compactMap { data in
+            data.withUnsafeBytes { rawBuffer -> String? in
+                guard let base = rawBuffer.baseAddress else { return nil }
+                let address = base.assumingMemoryBound(to: sockaddr.self)
+                guard address.pointee.sa_family == sa_family_t(AF_INET) else { return nil }
+                var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                guard getnameinfo(
+                    address,
+                    socklen_t(data.count),
+                    &host,
+                    socklen_t(host.count),
+                    nil,
+                    0,
+                    NI_NUMERICHOST
+                ) == 0 else { return nil }
+                return String(cString: host)
+            }
+        }
+    }
+
+    private func isOnLocalThunderboltSubnet(_ candidate: String) -> Bool {
+        var candidateAddress = in_addr()
+        guard inet_pton(AF_INET, candidate, &candidateAddress) == 1 else { return false }
+
+        var interfaces: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&interfaces) == 0 else { return false }
+        defer { freeifaddrs(interfaces) }
+
+        var current = interfaces
+        while let interface = current {
+            defer { current = interface.pointee.ifa_next }
+            let name = String(cString: interface.pointee.ifa_name)
+            guard name.hasPrefix("bridge"),
+                  let rawAddress = interface.pointee.ifa_addr,
+                  let rawMask = interface.pointee.ifa_netmask,
+                  rawAddress.pointee.sa_family == sa_family_t(AF_INET),
+                  rawMask.pointee.sa_family == sa_family_t(AF_INET)
+            else { continue }
+
+            let local = UnsafeRawPointer(rawAddress).assumingMemoryBound(to: sockaddr_in.self).pointee.sin_addr.s_addr
+            let mask = UnsafeRawPointer(rawMask).assumingMemoryBound(to: sockaddr_in.self).pointee.sin_addr.s_addr
+            if (candidateAddress.s_addr & mask) == (local & mask), candidateAddress.s_addr != local {
+                return true
+            }
+        }
+        return false
     }
 
     private func removeService(_ service: NetService) {

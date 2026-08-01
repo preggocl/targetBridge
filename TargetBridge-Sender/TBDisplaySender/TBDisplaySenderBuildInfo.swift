@@ -2,7 +2,7 @@ import Foundation
 
 enum TBDisplaySenderBuildInfo {
     static let marketingVersion = "3.3.0"
-    static let buildNumber = "20260801014540"
+    static let buildNumber = "20260801015945"
     static var versionDisplay: String {
         let version = Bundle.main.bundleIdentifier == "com.targetbridge.intel-sender"
             ? "\(marketingVersion)-intel.1"

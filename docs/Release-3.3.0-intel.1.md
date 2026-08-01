@@ -7,7 +7,8 @@ by AndyStuardo. The original TargetBridge Receiver is unchanged.
 
 - Thin native `x86_64` Sender for Intel Macs on macOS 14 or later.
 - Separate app name, icon, bundle identifier, preferences, logs and data.
-- Thunderbolt Bridge interface detection without changing Wi-Fi or network settings.
+- Thunderbolt Bridge interface and Receiver-address inference using the real
+  `bridge*` address and netmask, without hardcoded subnets or network changes.
 - Intel VideoToolbox hardware H.264 and HEVC selection with fallback telemetry.
 - 4K HiDPI profiles prioritizing logical 2048 x 1152 and 2304 x 1296.
 - Work 4K, Work 5K, Low Latency and Presentation quick profiles.
