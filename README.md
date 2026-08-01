@@ -1,6 +1,50 @@
+# TargetBridge Intel Sender
+
+This `intel-sender` branch is an independently packaged **Intel x86_64 Sender**
+variant of [swellweb/TargetBridge](https://github.com/swellweb/targetBridge),
+maintained by **AndyStuardo**. It is intended for Intel Macs running the Sender
+and reuses an iMac as a 4K or 5K display over Thunderbolt Bridge.
+
+Current validated setup:
+
+- Sender: Intel iMac 27-inch 5K (2020), macOS Sequoia 15.7.7
+- Receiver: unchanged upstream TargetBridge Receiver on an Intel iMac 21.5-inch 4K, macOS Monterey
+- transport: Thunderbolt Bridge with a dedicated IPv4 route
+- prioritized HiDPI modes: 2048 x 1152 and 2304 x 1296
+- hardware VideoToolbox H.264 and HEVC encoding on Intel
+
+The packaged application is `TargetBridge Intel Sender.app`, bundle identifier
+`com.targetbridge.intel-sender`, and is built as a thin `x86_64` executable. It
+has separate preferences and data and does not replace the original Sender or
+Receiver. The Intel package is not presented as an Apple Silicon build; use the
+upstream Sender for Apple Silicon Macs.
+
+Build it with:
+
+```bash
+TargetBridge-Sender/scripts/build_intel_sender_app.sh
+```
+
+The result is written to `build-intel/TargetBridge Intel Sender.app`. See the
+[Intel Sender audit and test procedure](docs/Intel-Sender-Audit.md) for verified
+hardware results, limitations, installation testing, and safe uninstall steps.
+
+This fork preserves the original MIT license, copyright, project attribution,
+and community credits. The original Receiver source is intentionally unchanged.
+
+> Development status: preview branch tested on the hardware above. No public
+> binary Release has been published yet.
+
+---
+
+## Upstream TargetBridge documentation
+
+The documentation below is inherited from the upstream project and describes
+the original Apple Silicon Sender and the broader TargetBridge feature set.
+
 ![TargetBridge Overview](images/connection-diagram.svg)
 
-# TargetBridge
+### TargetBridge
 
 Apple dropped Target Display Mode in late 2014 with the 5K iMac — and it never came back.
 
