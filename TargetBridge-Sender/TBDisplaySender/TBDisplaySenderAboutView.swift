@@ -53,12 +53,12 @@ struct TBDisplaySenderAboutView: View {
                         .fixedSize(horizontal: false, vertical: true)
 
                     HStack(spacing: 12) {
-                        Link(destination: URL(string: "https://github.com/preggocl/targetBridge")!) {
+                        Link(destination: URL(string: "https://github.com/preggocl/targetbridge-intel")!) {
                             Label(githubTitle, systemImage: "link")
                         }
                         .buttonStyle(.borderedProminent)
 
-                        Link(destination: URL(string: "https://github.com/preggocl/targetBridge/releases")!) {
+                        Link(destination: URL(string: "https://github.com/preggocl/targetbridge-intel/releases")!) {
                             Label(releaseTitle, systemImage: "shippingbox")
                         }
                         .buttonStyle(.bordered)

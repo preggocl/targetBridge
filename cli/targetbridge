@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# targetbridge — drive the TargetBridge Sender from the command line.
+# targetbridge-intel — drive TargetBridge Intel Sender from the command line.
 #
-# Thin wrapper over the app's `targetbridge://` URL scheme, so it reuses the exact
+# Thin wrapper over the app's `targetbridge-intel://` URL scheme, so it reuses the exact
 # in-app connect/disconnect paths (no separate control logic). Works whether the
 # Sender is already running or not (LaunchServices launches it on demand).
 #
 # Usage:
-#   targetbridge connect [--receiver auto|<id|name|ip>] [--mode mirror|extended]
+#   targetbridge-intel connect [--receiver auto|<id|name|ip>] [--mode mirror|extended]
 #                        [--preset <name>] [--transport tb|net] [--session N] [--local-ip <ip>]
-#   targetbridge disconnect [--session N]
+#   targetbridge-intel disconnect [--session N]
 #
 # Examples:
-#   targetbridge connect                                  # auto receiver, app defaults
-#   targetbridge connect --receiver auto --mode mirror --preset 1440p
-#   targetbridge connect --receiver 169.254.0.2 --mode extended --preset 5k
-#   targetbridge disconnect
+#   targetbridge-intel connect                                  # auto receiver, app defaults
+#   targetbridge-intel connect --receiver auto --mode mirror --preset 1440p
+#   targetbridge-intel connect --receiver 169.254.0.2 --mode extended --preset 5k
+#   targetbridge-intel disconnect
 #
 # Presets: standard1440p | smooth1440p60 | smooth1800p60 | crisp2160p60 | native5k
 #          (aliases: 1440p, 1440p60, 1800p, 4k, 5k)
 #
 # Remote / SSH: run it on the sender over SSH (the sender must be at a logged-in
 # desktop). Because the URL must open in that GUI session, wrap it with launchctl:
-#   ssh <user>@<sender> "launchctl asuser \$(id -u <user>) open 'targetbridge://connect?receiver=auto&mode=mirror&preset=1440p'"
+#   ssh <user>@<sender> "launchctl asuser \$(id -u <user>) open 'targetbridge-intel://connect?receiver=auto&mode=mirror&preset=1440p'"
 
 prog="$(basename "$0")"
 
@@ -69,6 +69,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-url="targetbridge://$action"
+url="targetbridge-intel://$action"
 [ -n "$query" ] && url+="?$query"
 exec open "$url"

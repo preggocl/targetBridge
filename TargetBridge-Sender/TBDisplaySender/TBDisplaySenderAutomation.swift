@@ -7,8 +7,8 @@ import Foundation
 // separate control daemon: it reuses the existing TBDisplaySenderService / session model.
 //
 // Two equivalent ways in:
-//   • URL scheme:   open "targetbridge://connect?receiver=auto&mode=mirror&preset=native5k"
-//                   open "targetbridge://disconnect"
+//   • URL scheme:   open "targetbridge-intel://connect?receiver=auto&mode=mirror&preset=native5k"
+//                   open "targetbridge-intel://disconnect"
 //   • Launch args:  TargetBridge --connect --receiver auto --mode mirror --preset native5k
 //                   (handy for a login item / LaunchAgent that should connect on launch)
 //
@@ -18,7 +18,7 @@ import Foundation
 enum TBSenderAutomation {
     private static var didHandleLaunchArguments = false
 
-    /// Handle a `targetbridge://` URL (from `.onOpenURL`).
+    /// Handle the registered Sender URL scheme (from `.onOpenURL`).
     static func handle(url: URL) {
         guard url.scheme?.lowercased() == "targetbridge" else { return }
         let action = (url.host ?? "").lowercased()
