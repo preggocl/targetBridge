@@ -68,8 +68,16 @@ struct TBDisplaySenderContentView: View {
                 .frame(width: 58, height: 58)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(TBDisplaySenderL10n.appName(service.language))
-                        .font(.system(size: 31, weight: .bold, design: .rounded))
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Text(TBDisplaySenderL10n.appName(service.language))
+                            .font(.system(size: 31, weight: .bold, design: .rounded))
+                        Text("INTEL SENDER")
+                            .font(.system(.caption, design: .rounded, weight: .bold))
+                            .foregroundStyle(.green)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(Color.green.opacity(0.12)))
+                    }
                     Text(TBDisplaySenderL10n.appSubtitle(service.language))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -82,10 +90,12 @@ struct TBDisplaySenderContentView: View {
                         service.summaryStatusText(),
                         tint: service.anyStreaming ? .green : .secondary
                     )
-                    Text(service.localInterfaceSummaryText)
-                        .font(.system(.footnote, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
+                    if let activeInterfaceText {
+                        Text(activeInterfaceText)
+                            .font(.system(.footnote, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.trailing)
+                    }
                 }
             }
         }
@@ -128,13 +138,31 @@ struct TBDisplaySenderContentView: View {
                         Text(TBDisplaySenderL10n.availableLocalInterfaces(service.language))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        Text(service.localInterfaceSummaryText)
-                            .font(.system(.body, design: .monospaced))
-                            .textSelection(.enabled)
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(service.localInterfaces) { localInterface in
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(activeInterfaceIPs.contains(localInterface.ip) ? Color.green : Color.secondary.opacity(0.45))
+                                        .frame(width: 7, height: 7)
+                                    Text(localInterface.displayText(service.language))
+                                        .font(.system(.body, design: .monospaced))
+                                        .textSelection(.enabled)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    private var activeInterfaceIPs: Set<String> {
+        Set(service.sessions.filter { $0.isConnected || $0.isStreaming }.map(\.localInterfaceIP))
+    }
+
+    private var activeInterfaceText: String? {
+        guard let session = service.sessions.first(where: { $0.isConnected || $0.isStreaming }) else { return nil }
+        return service.interfaceDisplayText(for: session.localInterfaceIP)
     }
 
     private func sectionHeading(_ title: String) -> some View {
@@ -810,7 +838,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
             .padding(24)
             .padding(.top, 14)
         }
-        .frame(width: 720, height: 620)
+        .frame(width: 900, height: 700)
         .background(
             LinearGradient(
                 colors: [
@@ -838,21 +866,21 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
     }
 
     private func settingRow<Content: View>(_ label: String, details: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+        HStack(alignment: .top, spacing: 24) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(label)
                     .font(.subheadline.weight(.semibold))
+                Text(details)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
-                Spacer()
-                content()
-                    .frame(maxWidth: 520, alignment: .trailing)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(width: 310, alignment: .leading)
 
-            Text(details)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            content()
+                .frame(maxWidth: .infinity, alignment: .trailing)
         }
+        .padding(.vertical, 3)
     }
 
     private func sectionHeading(_ title: String) -> some View {

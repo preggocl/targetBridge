@@ -299,11 +299,12 @@ struct TBDisplaySenderSettingsView: View {
 
     private var settingsTitle: String {
         switch service.language {
-        case .italian: return "Impostazioni TargetBridge"
-        case .english, .spanish: return "TargetBridge Settings"
-        case .german: return "TargetBridge-Einstellungen"
-        case .french: return "Réglages TargetBridge"
-        case .chinese: return "TargetBridge 设置"
+        case .italian: return "TargetBridge Intel Sender — Impostazioni"
+        case .spanish: return "TargetBridge Intel Sender — Ajustes"
+        case .english: return "TargetBridge Intel Sender — Settings"
+        case .german: return "TargetBridge Intel Sender — Einstellungen"
+        case .french: return "TargetBridge Intel Sender — Réglages"
+        case .chinese: return "TargetBridge Intel Sender — 设置"
         }
     }
 

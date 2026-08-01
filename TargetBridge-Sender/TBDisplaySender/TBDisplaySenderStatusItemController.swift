@@ -102,12 +102,13 @@ final class TBDisplaySenderStatusItemController: NSObject {
     private func refreshStatusItem() {
         guard let item = statusItem else { return }
         item.button?.toolTip = TBDisplaySenderL10n.topBarToolTip(service.language)
+        item.button?.contentTintColor = service.anyConnected ? .systemGreen : .labelColor
     }
 
     private func rebuildMenuItems(in menu: NSMenu) {
         menu.removeAllItems()
 
-        let titleItem = NSMenuItem(title: "TargetBridge", action: nil, keyEquivalent: "")
+        let titleItem = NSMenuItem(title: "TargetBridge — Intel Sender", action: nil, keyEquivalent: "")
         titleItem.isEnabled = false
         menu.addItem(titleItem)
 
@@ -116,9 +117,17 @@ final class TBDisplaySenderStatusItemController: NSObject {
         menu.addItem(statusItem)
 
         if !service.localInterfaces.isEmpty {
-            let ipItem = NSMenuItem(title: TBDisplaySenderL10n.topBarIP(service.language, service.localInterfaceSummaryText), action: nil, keyEquivalent: "")
-            ipItem.isEnabled = false
-            menu.addItem(ipItem)
+            let interfacesItem = NSMenuItem(title: TBDisplaySenderL10n.availableLocalInterfaces(service.language), action: nil, keyEquivalent: "")
+            let interfacesMenu = NSMenu()
+            let activeIPs = Set(service.sessions.filter { $0.isConnected || $0.isStreaming }.map(\.localInterfaceIP))
+            for localInterface in service.localInterfaces {
+                let interfaceItem = NSMenuItem(title: localInterface.displayText(service.language), action: nil, keyEquivalent: "")
+                interfaceItem.state = activeIPs.contains(localInterface.ip) ? .on : .off
+                interfaceItem.isEnabled = false
+                interfacesMenu.addItem(interfaceItem)
+            }
+            interfacesItem.submenu = interfacesMenu
+            menu.addItem(interfacesItem)
         }
 
         for session in service.sessions {
@@ -222,8 +231,43 @@ final class TBDisplaySenderStatusItemController: NSObject {
         raw.toolTip = "Bypasses H.264/HEVC; approximately 6.8 Gbit/s at 4K60."
         submenu.addItem(raw)
 
+        if session.isConnected || session.isStreaming {
+            submenu.addItem(.separator())
+            submenu.addItem(brightnessMenuItem(for: session))
+        }
+
         item.submenu = submenu
         return item
+    }
+
+    private func brightnessMenuItem(for session: TBDisplaySenderSession) -> NSMenuItem {
+        let item = NSMenuItem()
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 54))
+
+        let label = NSTextField(labelWithString: brightnessTitle)
+        label.frame = NSRect(x: 16, y: 31, width: 268, height: 17)
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+
+        let slider = NSSlider(value: session.brightness, minValue: 0, maxValue: 1, target: self, action: #selector(changeBrightness(_:)))
+        slider.frame = NSRect(x: 16, y: 6, width: 268, height: 22)
+        slider.identifier = NSUserInterfaceItemIdentifier(session.id.uuidString)
+        slider.isContinuous = true
+
+        container.addSubview(label)
+        container.addSubview(slider)
+        item.view = container
+        return item
+    }
+
+    private var brightnessTitle: String {
+        switch service.language {
+        case .spanish: return "Brillo del Receiver"
+        case .italian: return "Luminosità Receiver"
+        case .german: return "Receiver-Helligkeit"
+        case .french: return "Luminosité du Receiver"
+        case .chinese: return "Receiver 亮度"
+        case .english: return "Receiver brightness"
+        }
     }
 
     private func actionItem(_ title: String, session: TBDisplaySenderSession, kind: String, value: String = "") -> NSMenuItem {
@@ -297,6 +341,16 @@ final class TBDisplaySenderStatusItemController: NSObject {
                 break
             }
         }
+    }
+
+    @objc
+    private func changeBrightness(_ sender: NSSlider) {
+        guard
+            let rawID = sender.identifier?.rawValue,
+            let sessionID = UUID(uuidString: rawID),
+            let session = service.sessions.first(where: { $0.id == sessionID })
+        else { return }
+        session.brightness = sender.doubleValue
     }
 
     @objc
