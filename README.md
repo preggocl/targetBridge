@@ -104,7 +104,7 @@ compatibility, bug fixes, hardware testing, and future useful tools for Mac.
 Thank you to everyone supporting TargetBridge through GitHub Sponsors. Your
 contributions help keep the project moving forward.
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github)](https://github.com/sponsors/swellweb)
+[Support the original TargetBridge project on GitHub Sponsors](https://github.com/sponsors/swellweb)
 
 ## TargetBridge 3.3
 
@@ -160,22 +160,24 @@ TargetBridge now has a conservative manifest-based addon system. Official manife
 - `Audio Relay`: streamed system audio from sender to receiver. See [docs/audio.md](docs/audio.md) and [docs/Addons.md#official-addons](docs/Addons.md#official-addons).
 - `Input Dockstation`: keyboard/mouse relay, master/slave roles, slave switching, and text clipboard sync. See [docs/Addons.md#input-dockstation](docs/Addons.md#input-dockstation) and [Input Dockstation](docs/Features.md#input-dockstation).
 
-## Requirements
+## Intel Sender requirements
 
-- Sender: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or later
-- Receiver: Intel or Apple Silicon Mac, macOS 11 Big Sur or later
+- Sender: Intel Mac (`x86_64`) running macOS 14 Sonoma or later
+- Receiver: the unchanged upstream TargetBridge Receiver on a compatible iMac
 - Thunderbolt cable
-- See also [docs/Hardware.md](docs/Hardware.md) for hardware details, tested cables, adapters, and Thunderbolt networking ideas.
+- A working Thunderbolt Bridge network path between both Macs
 
-## Download
+## Intel fork download
 
-**[→ Download latest release (pre-built apps, no Xcode needed)](https://github.com/swellweb/targetBridge/releases/latest)**
+**[→ Intel Sender releases](https://github.com/preggocl/targetBridge/releases)**
 
-- `TargetBridge-arm64.app.zip` — Sender (for Apple Silicon Macs)
-- `TargetBridge-Receiver-arm64.app.zip` — Apple Silicon Receiver (use machine as monitor for sender)
-- `TargetBridge-Receiver-x86_64.app.zip` — Intel Receiver (use machine as monitor for sender)
+- `TargetBridge Intel Sender.app` — separate Intel-only Sender application
+- The Receiver is intentionally not repackaged by this fork; install the
+  appropriate Receiver from the [original TargetBridge releases](https://github.com/swellweb/targetBridge/releases/latest).
 
-Unzip and double-click. On first launch, grant Screen Recording permission to the sender.
+The Intel release is not yet published until its release candidate is signed
+off. Until then, build the package from this branch using the documented
+packaging script. On first launch, grant Screen Recording permission.
 
 If you build from source, app outputs go into `build/` folder.
 

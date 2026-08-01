@@ -39,7 +39,7 @@ Run the `gh attestation verify` command on the downloaded ZIP file, specifying
 the official repository owner and name:
 
 ```bash
-gh attestation verify "/path/to/TargetBridge-arm64.app.zip" --repo "swellweb/targetBridge"
+gh attestation verify "/path/to/TargetBridge-Intel-Sender-x86_64.app.zip" --repo "preggocl/targetBridge"
 ```
 
 ### Expected Successful Output
@@ -48,14 +48,18 @@ If the binary is authentic and was built by the official TargetBridge
 pipeline, the command will output a confirmation similar to the following:
 
 ```text
-Loaded 1 attestation for TargetBridge-arm64.app.zip
+Loaded 1 attestation for TargetBridge-Intel-Sender-x86_64.app.zip
 ✓ Verified 1 attestation
 ✓ Deposited in public transparency log
 ✓ Signed by GitHub Actions
-✓ Originated from swellweb/targetBridge (ref: refs/tags/v1.0.0)
+✓ Originated from preggocl/targetBridge (ref: refs/tags/v3.3.0-intel.1)
 ```
 
 > [!IMPORTANT]
+> This command only succeeds after the Intel fork publishes a release through
+> a GitHub Actions workflow configured to generate artifact attestations.
+> Locally built test packages are not attested.
+>
 > If verification fails, it indicates that the file was either modified after
 > compilation, generated outside the official GitHub Action runners, or
 > uploaded from an unauthorized fork. Do not run unverified binaries.
