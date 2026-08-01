@@ -1,7 +1,15 @@
 # TargetBridge Intel Sender feature guide
 
-This page combines the upstream 3.3 feature set that remains available with the
-Intel-specific controls and profiles added by this fork.
+This page combines the upstream TargetBridge feature set that remains available
+with the Intel-specific controls and profiles added by this fork.
+
+## Origin of features
+
+Unless a section says **Intel fork addition**, the underlying capability is
+inherited from TargetBridge. The fork may adjust its packaging, wording or UI,
+but does not claim authorship of inherited features such as Cable Test,
+connection diagnostics, display modes, Audio Relay, Input Dockstation,
+brightness control or Network Link.
 
 ## Display Modes
 
@@ -21,6 +29,10 @@ Related reading:
 
 ## Display Profiles
 
+**Intel fork addition/adaptation:** `Work 4K` and the 4K logical HiDPI modes
+below were added for the validated Intel iMac Receiver workflow. The existing
+upstream profiles remain available.
+
 Each configured display offers ready-to-use profiles:
 
 - `Work 4K` creates a 2048 x 1152 HiDPI extended desktop for a 21.5-inch 4K iMac and streams 4096 x 2304.
@@ -34,6 +46,9 @@ Changing a profile during an active stream performs a controlled stop, virtual
 display rebuild and reconnect. A brief interruption is expected.
 
 ## Guided Configuration Check
+
+**Inherited TargetBridge capability:** the fork retains this read-only check
+and localizes its Intel Sender presentation.
 
 In **Display Settings -> Diagnostics**, select **Check configuration** to review
 the setup before starting a stream. The check is read-only and does not change

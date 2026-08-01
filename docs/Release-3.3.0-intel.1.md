@@ -5,7 +5,7 @@ by AndyStuardo. Its goal is to make the TargetBridge Sender usable and
 diagnosable on Intel Macs without replacing the original application or
 repackaging the Receiver.
 
-## Highlights
+## Intel fork additions and adaptations
 
 - Thin native `x86_64` Sender for Intel Macs on macOS 14 or later.
 - Separate app name, icon, bundle identifier, preferences, logs and data.
@@ -30,6 +30,20 @@ repackaging the Receiver.
 - Safe `uninstall.sh` limited to the Intel Sender variant.
 - Fork-specific README, Spanish and English quick starts, compatibility matrix,
   reproducible evidence layout, hardware guide and release procedure.
+
+## Retained TargetBridge capabilities
+
+This preview also retains these upstream TargetBridge capabilities. They are
+not claimed as new work by the Intel fork:
+
+- Cable Test throughput measurement and guided connection diagnostics.
+- Duplicate and Extended Desktop streaming, Thunderbolt Bridge transport and
+  experimental Network Link.
+- Audio Relay, Input Dockstation, remote brightness, multi-Receiver sessions
+  and the shared Sender/Receiver protocol.
+
+The fork adapts UI presentation and documentation around these capabilities
+where necessary for Intel packaging and 4K workflows.
 
 ## Validated hardware
 
@@ -70,5 +84,7 @@ then run `xattr -cr "/Applications/TargetBridge Intel Sender.app"`.
 ## Attribution
 
 Based on the MIT-licensed TargetBridge project by swellweb and its open-source
-community. Intel Sender fork developed by AndyStuardo. Original copyright,
-license and community credits are preserved.
+community. The retained TargetBridge features above remain attributed to their
+upstream contributors. Intel Sender-specific additions and adaptations are
+developed by AndyStuardo. Original copyright, license and community credits are
+preserved.

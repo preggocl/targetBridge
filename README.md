@@ -38,7 +38,7 @@ The application is deliberately isolated from the original installation:
 It does not replace or remove TargetBridge Receiver, AirDisplay, Thunderbolt
 Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
 
-## What has changed
+## Intel fork additions and adaptations
 
 - Intel-native Sender build and packaging.
 - 4K-oriented `Work 4K` profile plus logical HiDPI modes `2048 x 1152` and
@@ -61,6 +61,23 @@ Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
   to use `session` internally.
 - A distinct petroleum-blue `x86` application icon. The functional menu-bar
   icon remains unchanged.
+
+## Inherited TargetBridge capabilities
+
+The following capabilities are retained from upstream TargetBridge. They are
+included in this fork because they remain part of the Sender workflow, but are
+not presented as original Intel-fork development:
+
+- Cable Test throughput measurement and guided connection diagnostics.
+- Duplicate and Extended Desktop streaming modes.
+- Thunderbolt Bridge transport, experimental Network Link, and multi-Receiver
+  sessions.
+- Audio Relay, Input Dockstation, remote brightness, translations and the
+  shared Sender/Receiver protocol.
+
+The Intel fork adapts the presentation, terminology, packaging and
+compatibility reporting around these features where necessary. Detailed
+upstream authorship remains available in the Git history and original project.
 
 ## Verified setup and results
 
