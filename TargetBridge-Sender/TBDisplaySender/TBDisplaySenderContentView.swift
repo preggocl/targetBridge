@@ -1,8 +1,14 @@
 import SwiftUI
 
 struct TBDisplaySenderContentView: View {
+    private enum InspectorRoute: Equatable {
+        case general
+        case session(UUID)
+    }
+
     @ObservedObject var service: TBDisplaySenderService
     @State private var showingAbout = false
+    @State private var inspectorRoute: InspectorRoute?
 
     var body: some View {
         ScrollView {
@@ -11,7 +17,9 @@ struct TBDisplaySenderContentView: View {
                 controlDeck
 
                 ForEach(service.sessions) { session in
-                    TBDisplaySenderSessionCard(service: service, session: session)
+                    TBDisplaySenderSessionCard(service: service, session: session) {
+                        toggleInspector(.session(session.id))
+                    }
                 }
 
                 HStack {
@@ -31,6 +39,10 @@ struct TBDisplaySenderContentView: View {
         .sheet(isPresented: $showingAbout) {
             TBDisplaySenderAboutView(service: service)
         }
+        .inspector(isPresented: inspectorPresented) {
+            inspectorContent
+                .inspectorColumnWidth(min: 380, ideal: 430, max: 500)
+        }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -39,11 +51,40 @@ struct TBDisplaySenderContentView: View {
                     Label(aboutToolbarTitle, systemImage: "info.circle")
                 }
 
-                SettingsLink {
+                Button {
+                    toggleInspector(.general)
+                } label: {
                     Label(settingsToolbarTitle, systemImage: "slider.horizontal.3")
                 }
             }
         }
+    }
+
+    private var inspectorPresented: Binding<Bool> {
+        Binding(
+            get: { inspectorRoute != nil },
+            set: { if !$0 { inspectorRoute = nil } }
+        )
+    }
+
+    @ViewBuilder
+    private var inspectorContent: some View {
+        switch inspectorRoute {
+        case .general:
+            TBDisplaySenderSettingsView(service: service)
+        case .session(let id):
+            if let session = service.sessions.first(where: { $0.id == id }) {
+                TBDisplaySenderSessionSettingsSheet(service: service, session: session) {
+                    inspectorRoute = nil
+                }
+            }
+        case nil:
+            EmptyView()
+        }
+    }
+
+    private func toggleInspector(_ route: InspectorRoute) {
+        inspectorRoute = inspectorRoute == route ? nil : route
     }
 
     private var headerCard: some View {
@@ -212,7 +253,7 @@ struct TBDisplaySenderContentView: View {
 private struct TBDisplaySenderSessionCard: View {
     @ObservedObject var service: TBDisplaySenderService
     @ObservedObject var session: TBDisplaySenderSession
-    @State private var showingSessionSettings = false
+    let showSettings: () -> Void
 
     private let summaryColumns = [
         GridItem(.adaptive(minimum: 180), spacing: 12)
@@ -231,9 +272,6 @@ private struct TBDisplaySenderSessionCard: View {
                 }
                 monitorDetailsCard
             }
-        }
-        .sheet(isPresented: $showingSessionSettings) {
-            TBDisplaySenderSessionSettingsSheet(service: service, session: session)
         }
     }
 
@@ -265,7 +303,7 @@ private struct TBDisplaySenderSessionCard: View {
                 .disabled(!session.isConnected && (trimmedReceiverIP.isEmpty || session.localInterfaceIP.isEmpty))
 
                 Button {
-                    showingSessionSettings = true
+                    showSettings()
                 } label: {
                     Label(TBDisplaySenderL10n.showSettings(service.language), systemImage: "gearshape.2")
                 }
@@ -554,7 +592,7 @@ private struct TBDisplaySenderSessionCard: View {
 private struct TBDisplaySenderSessionSettingsSheet: View {
     @ObservedObject var service: TBDisplaySenderService
     @ObservedObject var session: TBDisplaySenderSession
-    @Environment(\.dismiss) private var dismiss
+    let close: () -> Void
     @State private var configurationChecks: [TBConfigurationCheck] = []
 
     var body: some View {
@@ -612,13 +650,13 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
 
                 settingsSection(title: outputSettingsTitle) {
                     settingRow(TBDisplaySenderL10n.displayProfiles(service.language), details: TBDisplaySenderL10n.displayProfilesHint(service.language)) {
-                        HStack(spacing: 8) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 105), spacing: 8)], spacing: 8) {
                             ForEach(TBDisplayProfile.allCases) { profile in
                                 Button(TBDisplaySenderL10n.displayProfileTitle(profile, language: service.language)) {
                                     service.applyDisplayProfile(profile, to: session)
                                 }
                                 .buttonStyle(.bordered)
-                                .fixedSize(horizontal: true, vertical: false)
+                                .frame(maxWidth: .infinity)
                                 .disabled(session.isConnected || session.isStreaming)
                             }
                         }
@@ -838,7 +876,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
             .padding(24)
             .padding(.top, 14)
         }
-        .frame(width: 900, height: 700)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             LinearGradient(
                 colors: [
@@ -866,21 +904,21 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
     }
 
     private func settingRow<Content: View>(_ label: String, details: String, @ViewBuilder content: () -> Content) -> some View {
-        HStack(alignment: .top, spacing: 24) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(label)
                     .font(.subheadline.weight(.semibold))
-                Text(details)
-                    .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                content()
+                    .frame(maxWidth: 260, alignment: .trailing)
             }
-            .frame(width: 310, alignment: .leading)
 
-            content()
-                .frame(maxWidth: .infinity, alignment: .trailing)
+            Text(details)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.vertical, 3)
     }
 
     private func sectionHeading(_ title: String) -> some View {
@@ -959,7 +997,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                 Spacer()
 
                 Button(TBDisplaySenderL10n.hideSettings(service.language)) {
-                    dismiss()
+                    close()
                 }
                 .buttonStyle(.bordered)
             }

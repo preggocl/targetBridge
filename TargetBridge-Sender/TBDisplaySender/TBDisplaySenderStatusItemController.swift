@@ -102,7 +102,16 @@ final class TBDisplaySenderStatusItemController: NSObject {
     private func refreshStatusItem() {
         guard let item = statusItem else { return }
         item.button?.toolTip = TBDisplaySenderL10n.topBarToolTip(service.language)
-        item.button?.contentTintColor = service.anyConnected ? .systemGreen : .labelColor
+        if service.anyConnected,
+           let connectedImage = NSImage(systemSymbolName: "display.2", accessibilityDescription: "TargetBridge connected")?
+            .withSymbolConfiguration(.init(paletteColors: [.systemGreen])) {
+            connectedImage.isTemplate = false
+            item.button?.image = connectedImage
+        } else {
+            let idleImage = NSImage(systemSymbolName: "display.2", accessibilityDescription: "TargetBridge")
+            idleImage?.isTemplate = true
+            item.button?.image = idleImage
+        }
     }
 
     private func rebuildMenuItems(in menu: NSMenu) {
@@ -128,6 +137,11 @@ final class TBDisplaySenderStatusItemController: NSObject {
             }
             interfacesItem.submenu = interfacesMenu
             menu.addItem(interfacesItem)
+        }
+
+        let activeSessions = service.sessions.filter { $0.isConnected || $0.isStreaming }
+        for session in activeSessions {
+            menu.addItem(brightnessMenuItem(for: session))
         }
 
         for session in service.sessions {
@@ -231,11 +245,6 @@ final class TBDisplaySenderStatusItemController: NSObject {
         raw.toolTip = "Bypasses H.264/HEVC; approximately 6.8 Gbit/s at 4K60."
         submenu.addItem(raw)
 
-        if session.isConnected || session.isStreaming {
-            submenu.addItem(.separator())
-            submenu.addItem(brightnessMenuItem(for: session))
-        }
-
         item.submenu = submenu
         return item
     }
@@ -244,7 +253,8 @@ final class TBDisplaySenderStatusItemController: NSObject {
         let item = NSMenuItem()
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 54))
 
-        let label = NSTextField(labelWithString: brightnessTitle)
+        let receiverName = session.receiverDisplayName.isEmpty ? service.sessionTitle(for: session) : session.receiverDisplayName
+        let label = NSTextField(labelWithString: "\(brightnessTitle) · \(receiverName)")
         label.frame = NSRect(x: 16, y: 31, width: 268, height: 17)
         label.font = .systemFont(ofSize: 12, weight: .medium)
 

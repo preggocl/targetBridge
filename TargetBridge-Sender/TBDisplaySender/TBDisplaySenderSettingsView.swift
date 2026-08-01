@@ -48,7 +48,7 @@ struct TBDisplaySenderSettingsView: View {
                             Text(language.pickerTitle).tag(language)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
 
                 settingsSection(title: interfaceTitle) {
