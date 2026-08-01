@@ -56,6 +56,7 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
 
     private func show(_ content: AnyView, attachedTo parent: NSWindow) {
         let panel = panel ?? makePanel()
+        self.panel = panel
         panel.contentViewController = NSHostingController(rootView: content)
 
         if parentWindow !== parent {
@@ -67,13 +68,12 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
 
         positionPanel()
         panel.orderFront(nil)
-        self.panel = panel
     }
 
     private func makePanel() -> NSPanel {
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 410, height: 700),
-            styleMask: [.titled, .closable, .resizable],
+            styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
@@ -81,6 +81,8 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
         panel.titlebarAppearsTransparent = false
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
+        panel.isMovable = false
+        panel.isMovableByWindowBackground = false
         panel.minSize = NSSize(width: 440, height: 420)
         panel.maxSize = NSSize(width: 540, height: 1_400)
         panel.delegate = self
@@ -138,6 +140,7 @@ private final class TBTelemetryPanelController: NSObject, NSWindowDelegate {
     static let shared = TBTelemetryPanelController()
     private var panel: NSPanel?
     private weak var parentWindow: NSWindow?
+    private var observers: [NSObjectProtocol] = []
 
     func toggle(session: TBDisplaySenderSession, service: TBDisplaySenderService) {
         if panel?.isVisible == true {
@@ -147,7 +150,7 @@ private final class TBTelemetryPanelController: NSObject, NSWindowDelegate {
         guard let parent = NSApp.keyWindow ?? NSApp.mainWindow else { return }
         let panel = panel ?? NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 820, height: 220),
-            styleMask: [.titled, .closable, .resizable],
+            styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
@@ -155,13 +158,33 @@ private final class TBTelemetryPanelController: NSObject, NSWindowDelegate {
         panel.minSize = NSSize(width: 560, height: 190)
         panel.maxSize = NSSize(width: 1_200, height: 360)
         panel.isReleasedWhenClosed = false
+        panel.isMovable = false
+        panel.isMovableByWindowBackground = false
         panel.delegate = self
         panel.contentViewController = NSHostingController(rootView: TBTelemetryPanelView(session: session))
+        self.panel = panel
         if parentWindow !== parent {
+            detachFromParent()
             parentWindow?.removeChildWindow(panel)
             parentWindow = parent
             parent.addChildWindow(panel, ordered: .above)
+            observe(parent)
         }
+        positionPanel()
+        panel.orderFront(nil)
+    }
+
+    private func observe(_ parent: NSWindow) {
+        let center = NotificationCenter.default
+        for name in [NSWindow.didMoveNotification, NSWindow.didResizeNotification, NSWindow.didChangeScreenNotification] {
+            observers.append(center.addObserver(forName: name, object: parent, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.positionPanel() }
+            })
+        }
+    }
+
+    private func positionPanel() {
+        guard let parent = parentWindow, let panel else { return }
         let visible = parent.screen?.visibleFrame ?? parent.frame
         let width = min(max(parent.frame.width, 680), visible.width)
         let height: CGFloat = 220
@@ -169,13 +192,17 @@ private final class TBTelemetryPanelController: NSObject, NSWindowDelegate {
         let y = max(visible.minY, proposedY)
         let x = min(max(parent.frame.midX - width / 2, visible.minX), visible.maxX - width)
         panel.setFrame(NSRect(x: x, y: y, width: width, height: height), display: true)
-        panel.orderFront(nil)
-        self.panel = panel
     }
 
     func close() {
         panel?.orderOut(nil)
+        detachFromParent()
+    }
+
+    private func detachFromParent() {
         if let panel, let parentWindow { parentWindow.removeChildWindow(panel) }
+        observers.forEach(NotificationCenter.default.removeObserver)
+        observers.removeAll()
         parentWindow = nil
     }
 
