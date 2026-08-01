@@ -19,6 +19,47 @@ has separate preferences and data and does not replace the original Sender or
 Receiver. The Intel package is not presented as an Apple Silicon build; use the
 upstream Sender for Apple Silicon Macs.
 
+## Improvements in the Intel Sender fork
+
+- Intel-native `x86_64` application with its own name, icon, bundle identifier,
+  preferences, logs and application data.
+- `Work 4K` and Intel-safe 4K HiDPI profiles, prioritizing logical
+  `2048 x 1152` and `2304 x 1296` workspaces.
+- Quick controls in a single menu-bar icon for connect/disconnect, discovered
+  Receivers, Duplicate/Extended Desktop and all available display profiles.
+- Spanish localization with automatic system-language selection and English
+  fallback. A few inherited advanced descriptions may still appear in English.
+- Optional launch at login and optional automatic reconnection to the saved
+  Receiver/display configuration.
+- Hardware VideoToolbox H.264 and HEVC selection on Intel, with encoder,
+  fallback, resolution, bitrate, FPS and error telemetry.
+- Experimental raw NV12 transport, explicitly opt-in and guarded by Receiver
+  capability detection.
+- Improved Thunderbolt Bridge interface recognition, while leaving Wi-Fi and
+  macOS network configuration untouched.
+- Safe, auditable `uninstall.sh` that removes only the Intel Sender variant.
+
+The menu-bar status item is the Sender's quick-control surface. The separate
+purple macOS screen-sharing indicator is owned by macOS and cannot be merged or
+removed by TargetBridge while screen capture is active.
+
+## Receiver session and Lock Screen
+
+The unchanged Receiver runs inside the logged-in macOS user session. It does
+not run above the secure Lock Screen and this fork deliberately does not store,
+transmit or type a Receiver account password. An ordinary application must not
+bypass macOS authentication; FileVault startup login also necessarily requires
+local authentication.
+
+When the Receiver is closed, no TargetBridge process remains responsible for
+keeping that display awake, so the Receiver Mac follows its own Lock Screen,
+screen-saver and display-sleep settings. A future, separately packaged Receiver
+variant can safely add launch-at-login, automatic listening/reconnection and a
+`Keep display awake while waiting or connected` option. Such an option can
+inhibit idle display sleep while the Receiver is running, but it cannot and
+should not unlock a locked Mac. TargetBridge will not automatically weaken or
+change the user's macOS security settings.
+
 Build it with:
 
 ```bash

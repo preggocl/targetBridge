@@ -46,6 +46,22 @@ The two prioritized 4K profiles prefer HEVC and fall back to H.264 when sender h
 
 This branch identifies itself as version `3.3.0-intel.1`. The About panel credits the original TargetBridge project and community, identifies AndyStuardo as developer of the Intel Sender fork, and preserves the original MIT copyright and attribution. The upstream Receiver remains unchanged.
 
+## Receiver lock-screen boundary
+
+The upstream Receiver is a normal GUI process in the logged-in user's session.
+It contains no display-sleep assertion, so after it exits the Receiver Mac
+follows its own screen-saver, display-sleep and password policies. The Intel
+Sender only asserts `idleSystemSleepDisabled` while streaming and optionally
+`idleDisplaySleepDisabled`; these assertions apply to the Sender Mac, not the
+Receiver.
+
+No credential-based unlock is implemented or recommended. The macOS Lock
+Screen and FileVault login are security boundaries that a Receiver connection
+must not bypass. A future Receiver fork may safely provide launch-at-login,
+automatic listening/reconnection and an opt-in display-sleep assertion while
+waiting or connected, without storing credentials or changing system security
+settings.
+
 ## Thunderbolt Bridge
 
 Read-only verification showed `10.0.0.2` routed through `bridge0`; `bridge0` was active at `10.0.0.1/24`. Three ICMP probes succeeded with 0% loss and 1.374 ms average RTT. No network settings or Wi-Fi state were changed.
