@@ -7,6 +7,7 @@ REPO_ROOT="$(cd "$SENDER_ROOT/.." && pwd)"
 DERIVED_DATA_DIR="${TMPDIR:-/tmp}/TargetBridgeIntelSender-DerivedData"
 PRODUCT_NAME="TargetBridge Intel Sender"
 DEST_DIR="$REPO_ROOT/build-intel"
+INTEL_BUILD_NUMBER="${TB_INTEL_BUILD_NUMBER:-$(date -u +%Y%m%d%H%M%S)}"
 
 cd "$SENDER_ROOT"
 xcodebuild \
@@ -19,6 +20,7 @@ xcodebuild \
   ONLY_ACTIVE_ARCH=YES \
   PRODUCT_NAME="$PRODUCT_NAME" \
   PRODUCT_BUNDLE_IDENTIFIER=com.targetbridge.intel-sender \
+  CURRENT_PROJECT_VERSION="$INTEL_BUILD_NUMBER" \
   INFOPLIST_FILE=TargetBridgeSupport/IntelSender-Info.plist \
   CODE_SIGNING_ALLOWED=NO \
   build
@@ -42,3 +44,4 @@ echo "Built: $DEST_APP"
 file "$DEST_APP/Contents/MacOS/$PRODUCT_NAME"
 codesign -dv "$DEST_APP" 2>&1
 /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$DEST_APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$DEST_APP/Contents/Info.plist"

@@ -35,6 +35,11 @@ signature, then writes ZIP, DMG and SHA-256 checksums under `dist/`. Its current
 build is ad-hoc signed and suitable for controlled prerelease testing. Users may
 see Gatekeeper or quarantine warnings.
 
+Every Intel build receives a new timestamp-based `CFBundleVersion`. Reusing
+bundle version `1` caused LaunchServices, Launchpad and Dock to retain an older
+application icon even when the installed asset catalog had changed. Do not
+override `TB_INTEL_BUILD_NUMBER` with a value already distributed.
+
 ## Signing and notarization boundary
 
 A public package with a smooth first launch should eventually use:

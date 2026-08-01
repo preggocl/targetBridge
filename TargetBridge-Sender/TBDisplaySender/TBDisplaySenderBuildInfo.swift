@@ -7,6 +7,10 @@ enum TBDisplaySenderBuildInfo {
         let version = Bundle.main.bundleIdentifier == "com.targetbridge.intel-sender"
             ? "\(marketingVersion)-intel.1"
             : marketingVersion
-        return "\(version) + build \(buildNumber)"
+        let bundleBuild = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        let displayedBuild = Bundle.main.bundleIdentifier == "com.targetbridge.intel-sender"
+            ? (bundleBuild ?? buildNumber)
+            : buildNumber
+        return "\(version) + build \(displayedBuild)"
     }
 }
