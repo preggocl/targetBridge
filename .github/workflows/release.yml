@@ -1,9 +1,9 @@
-name: Release Build & Publish
+name: Intel Sender Prerelease
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*-intel.*'
 
 permissions:
   contents: write
@@ -11,113 +11,71 @@ permissions:
   attestations: write
 
 jobs:
-  build-sender:
-    name: Build Sender (Apple Silicon)
-    runs-on: macos-15
+  build-intel-sender:
+    name: Build Intel Sender release artifacts
+    runs-on: macos-15-intel
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Tools
-        run: |
-          brew install xcodegen
+      - name: Derive version
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Build Sender App
-        run: |
-          cd TargetBridge-Sender
-          ./scripts/build_targetbridge_sender_app.sh
+      - name: Check localizations
+        run: ./TargetBridge-Shared/scripts/check_localizations.sh
 
-      - name: Zip App Bundle
+      - name: Run Sender unit tests
+        working-directory: TargetBridge-Sender
         run: |
-          cd build
-          zip -r TargetBridge-arm64.app.zip TargetBridge.app
+          xcodebuild test \
+            -project TargetBridge.xcodeproj \
+            -scheme TBDisplaySender \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=x86_64' \
+            -derivedDataPath .build/DerivedData \
+            ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO
 
-      - name: Generate build provenance attestation
+      - name: Package ZIP and DMG
+        run: TargetBridge-Sender/scripts/package_intel_sender_release.sh '${{ steps.version.outputs.value }}'
+
+      - name: Generate provenance attestations
         uses: actions/attest@v4
         with:
-          subject-path: build/TargetBridge-arm64.app.zip
+          subject-path: dist/${{ steps.version.outputs.value }}/TargetBridge-Intel-Sender-*
 
-      - name: Upload Sender Artifact
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: TargetBridge-arm64.app.zip
-          path: build/TargetBridge-arm64.app.zip
-          retention-days: 1
+          name: TargetBridge-Intel-Sender-${{ steps.version.outputs.value }}
+          path: dist/${{ steps.version.outputs.value }}/*
+          retention-days: 7
 
-  build-receiver:
-    name: Build Receiver (macOS ${{ matrix.arch }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-15-intel
-            arch: x86_64
-          - os: macos-15
-            arch: arm64
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v6
-
-      - name: Install Dependencies
-        run: |
-          brew install ffmpeg sdl2 sdl3 dylibbundler
-
-      - name: Build Receiver App
-        run: |
-          cd TargetBridge-Receiver
-          ./scripts/build_tbreceiver_c_app.sh
-
-      - name: Zip App Bundle
-        run: |
-          cd build
-          zip -r TargetBridge-Receiver-${{ matrix.arch }}.app.zip "TargetBridge Receiver.app"
-
-      - name: Generate build provenance attestation
-        uses: actions/attest@v4
-        with:
-          subject-path: build/TargetBridge-Receiver-${{ matrix.arch }}.app.zip
-
-      - name: Upload Receiver Artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: TargetBridge-Receiver-${{ matrix.arch }}.app.zip
-          path: build/TargetBridge-Receiver-${{ matrix.arch }}.app.zip
-          retention-days: 1
-
-  publish-release:
-    name: Publish GitHub Release
-    needs: [build-sender, build-receiver]
+  publish-prerelease:
+    name: Publish GitHub prerelease
+    needs: build-intel-sender
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Download Sender Artifact
+      - name: Derive version
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
-          name: TargetBridge-arm64.app.zip
-          path: ./artifacts
+          name: TargetBridge-Intel-Sender-${{ steps.version.outputs.value }}
+          path: artifacts
 
-      - name: Download Receiver Artifact (x86_64)
-        uses: actions/download-artifact@v8
-        with:
-          name: TargetBridge-Receiver-x86_64.app.zip
-          path: ./artifacts
-
-      - name: Download Receiver Artifact (arm64)
-        uses: actions/download-artifact@v8
-        with:
-          name: TargetBridge-Receiver-arm64.app.zip
-          path: ./artifacts
-
-      - name: Create Draft Release
+      - name: Create prerelease
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            ./artifacts/TargetBridge-arm64.app.zip \
-            ./artifacts/TargetBridge-Receiver-x86_64.app.zip \
-            ./artifacts/TargetBridge-Receiver-arm64.app.zip \
-            --title "TargetBridge ${{ github.ref_name }}" \
-            --draft \
-            --generate-notes
+          gh release create "$GITHUB_REF_NAME" \
+            artifacts/* \
+            --verify-tag \
+            --prerelease \
+            --title "TargetBridge Intel Sender ${{ steps.version.outputs.value }}" \
+            --notes-file docs/Release-3.3.0-intel.1.md

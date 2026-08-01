@@ -4,6 +4,8 @@
 .build/
 DerivedData/
 build/
+build-intel/
+dist/
 
 # Xcode user data
 xcuserdata/
@@ -12,6 +14,7 @@ xcuserdata/
 # macOS app bundles produced locally
 *.app
 *.zip
+*.dmg
 
 # C build outputs
 *.o

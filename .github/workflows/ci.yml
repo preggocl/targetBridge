@@ -1,65 +1,46 @@
-name: CI Build Verification
+name: Intel Sender CI
 
 on:
   push:
-    branches: [ main, 3.1-maint, 3.2-dev, dev-3.3.0 ]
+    branches: [intel-sender]
   pull_request:
-    branches: [ main, 3.1-maint, 3.2-dev, dev-3.3.0 ]
+    branches: [intel-sender]
 
 jobs:
-  build-sender:
-    name: Build Sender (macOS 15 - Apple Silicon)
-    runs-on: macos-15
+  sender-x86-64:
+    name: Sender tests and package (x86_64)
+    runs-on: macos-15-intel
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Tools
-        run: |
-          brew install jq xcodegen
+      - name: Check localizations
+        run: ./TargetBridge-Shared/scripts/check_localizations.sh
 
-      - name: Check Localizations
+      - name: Run Sender unit tests
+        working-directory: TargetBridge-Sender
         run: |
-          ./TargetBridge-Shared/scripts/check_localizations.sh
+          xcodebuild test \
+            -project TargetBridge.xcodeproj \
+            -scheme TBDisplaySender \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=x86_64' \
+            -derivedDataPath .build/DerivedData \
+            ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO
 
-      - name: Build Sender App
+      - name: Build Intel Sender package
+        run: TargetBridge-Sender/scripts/build_intel_sender_app.sh
+
+      - name: Validate package identity
         run: |
-          cd TargetBridge-Sender
-          ./scripts/build_targetbridge_sender_app.sh
+          APP='build-intel/TargetBridge Intel Sender.app'
+          file "$APP/Contents/MacOS/TargetBridge Intel Sender" | grep 'x86_64'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")" = 'com.targetbridge.intel-sender'
+          codesign --verify --deep --strict --verbose=2 "$APP"
 
-      - name: Run Sender Unit Tests
-        run: |
-          cd TargetBridge-Sender
-          xcodebuild test -project TargetBridge.xcodeproj -scheme TBDisplaySender -destination 'platform=macOS' -derivedDataPath .build/DerivedData
-
-  build-receiver:
-    name: Build Receiver (${{ matrix.os }} - ${{ matrix.arch }})
-    strategy:
-      matrix:
-        include:
-          - os: macos-15-intel
-            arch: x86_64
-          - os: macos-15
-            arch: arm64
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v6
-
-      - name: Install Dependencies
-        run: |
-          brew install ffmpeg jq sdl2 sdl3 dylibbundler
-
-      - name: Check Localizations
-        run: |
-          ./TargetBridge-Shared/scripts/check_localizations.sh
-
-      - name: Run Receiver Parser Tests
-        run: |
-          cd TargetBridge-Receiver/TBReceiverC
-          make test
-
-      - name: Build Receiver App
-        run: |
-          cd TargetBridge-Receiver
-          ./scripts/build_tbreceiver_c_app.sh
+      - name: Upload test package
+        uses: actions/upload-artifact@v7
+        with:
+          name: TargetBridge-Intel-Sender-x86_64-ci
+          path: build-intel/TargetBridge Intel Sender.app
+          retention-days: 7

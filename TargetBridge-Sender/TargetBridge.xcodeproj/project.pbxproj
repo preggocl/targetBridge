@@ -350,7 +350,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nif [[ \"${PRODUCT_BUNDLE_IDENTIFIER}\" == \"com.targetbridge.intel-sender\" ]]; then\n    exit 0\nfi\nSTAMP=\"$(date +%Y%m%d%H%M%S)\"\ncat > \"${SRCROOT}/TBDisplaySender/TBDisplaySenderBuildInfo.swift\" <<EOI\nimport Foundation\n\nenum TBDisplaySenderBuildInfo {\n    static let marketingVersion = \"3.3.0\"\n    static let buildNumber = \"${STAMP}\"\n    static var versionDisplay: String {\n        let version = Bundle.main.bundleIdentifier == \"com.targetbridge.intel-sender\"\n            ? \"\\\\(marketingVersion)-intel.1\"\n            : marketingVersion\n        return \"\\\\(version) + build \\\\(buildNumber)\"\n    }\n}\nEOI\n";
+			shellScript = "set -euo pipefail\nif [[ \"${CONFIGURATION}\" == \"Debug\" || \"${PRODUCT_BUNDLE_IDENTIFIER}\" == \"com.targetbridge.intel-sender\" ]]; then\n    exit 0\nfi\nSTAMP=\"$(date +%Y%m%d%H%M%S)\"\ncat > \"${SRCROOT}/TBDisplaySender/TBDisplaySenderBuildInfo.swift\" <<EOI\nimport Foundation\n\nenum TBDisplaySenderBuildInfo {\n    static let marketingVersion = \"3.3.0\"\n    static let buildNumber = \"${STAMP}\"\n    static var versionDisplay: String {\n        let version = Bundle.main.bundleIdentifier == \"com.targetbridge.intel-sender\"\n            ? \"\\\\(marketingVersion)-intel.1\"\n            : marketingVersion\n        return \"\\\\(version) + build \\\\(buildNumber)\"\n    }\n}\nEOI\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
