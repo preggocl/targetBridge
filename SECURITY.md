@@ -9,7 +9,7 @@ Only the latest release is supported.
 For a vulnerability in **TargetBridge Intel Sender**, open a private security
 advisory in the fork repository:
 
-https://github.com/preggocl/targetBridge/security/advisories/new
+https://github.com/preggocl/targetbridge-intel/security/advisories/new
 
 Please do not send fork-specific reports to the original TargetBridge
 maintainer. Vulnerabilities reproduced in the unchanged upstream code should

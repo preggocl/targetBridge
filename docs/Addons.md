@@ -23,11 +23,11 @@ The current official manifests bundled with the app are:
 
 Bundled official addon manifests also ship inside the app bundle and are mirrored to:
 
-`~/Library/Application Support/TargetBridge/Addons/Official/`
+`~/Library/Application Support/TargetBridge Intel Sender/Addons/Official/`
 
 User-installed addon manifests live separately in:
 
-`~/Library/Application Support/TargetBridge/Addons/User/`
+`~/Library/Application Support/TargetBridge Intel Sender/Addons/User/`
 
 Where addon files live
 ----------------------
@@ -38,7 +38,7 @@ How to add an addon
 -------------------
 
 1. Create a JSON manifest file.
-2. Open **TargetBridge > Settings > Add-ons**.
+2. Open **TargetBridge Intel Sender > Settings > Add-ons**.
 3. Click **Import Addon...**.
 4. Select the JSON file.
 5. Enable or disable the addon from the list.

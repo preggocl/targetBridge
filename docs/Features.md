@@ -1,6 +1,7 @@
-# TargetBridge Feature Guide
+# TargetBridge Intel Sender feature guide
 
-This page gives a practical overview of the main TargetBridge features introduced or expanded in the 3.0 line, with links to deeper documentation where it exists.
+This page combines the upstream 3.3 feature set that remains available with the
+Intel-specific controls and profiles added by this fork.
 
 ## Display Modes
 
@@ -15,13 +16,12 @@ If the receiver panel does not look correct, set the matching resolution on the 
 
 Related reading:
 
-- [docs/QuickStart-EN.md](docs/QuickStart-EN.md)
-- [docs/QuickStart-IT.md](docs/QuickStart-IT.md)
-- [docs/QuickStart-ZH.md](docs/QuickStart-ZH.md)
+- [QuickStart-ES.md](QuickStart-ES.md)
+- [QuickStart-EN.md](QuickStart-EN.md)
 
 ## Display Profiles
 
-Each sender session offers three ready-to-use display profiles before connecting:
+Each configured display offers ready-to-use profiles:
 
 - `Work 4K` creates a 2048 x 1152 HiDPI extended desktop for a 21.5-inch 4K iMac and streams 4096 x 2304.
 - `Work 5K` creates an extended desktop at 5K with render matching enabled.
@@ -30,11 +30,12 @@ Each sender session offers three ready-to-use display profiles before connecting
 
 TargetBridge remembers the last selected profile for each discovered receiver, so
 choosing that receiver again restores the matching setup before the next connection.
-Profiles never change an active stream; stop the session before applying another one.
+Changing a profile during an active stream performs a controlled stop, virtual
+display rebuild and reconnect. A brief interruption is expected.
 
 ## Guided Configuration Check
 
-In **Session Settings -> Diagnostics**, select **Check configuration** to review
+In **Display Settings -> Diagnostics**, select **Check configuration** to review
 the setup before starting a stream. The check is read-only and does not change
 macOS settings or request a permission by itself.
 
@@ -80,7 +81,7 @@ Use this when:
 
 Related reading:
 
-- [docs/Addons.md#official-addons](docs/Addons.md#official-addons)
+- [Addons.md#official-addons](Addons.md#official-addons)
 
 ## Audio Relay
 
@@ -95,8 +96,8 @@ The current implementation:
 
 Related reading:
 
-- [docs/audio.md](docs/audio.md)
-- [docs/Addons.md#official-addons](docs/Addons.md#official-addons)
+- [audio.md](audio.md)
+- [Addons.md#official-addons](Addons.md#official-addons)
 
 ## Input Dockstation
 
@@ -128,7 +129,7 @@ This is useful for KVM-like workflows where one keyboard and mouse should contro
 
 Related reading:
 
-- [docs/Addons.md#input-dockstation](docs/Addons.md#input-dockstation)
+- [Addons.md#input-dockstation](Addons.md#input-dockstation)
 
 ## Remote Brightness Control
 
@@ -142,7 +143,9 @@ The current implementation sends brightness updates over the session protocol an
 
 Sender and Receiver now use shared JSON language files stored in the repository.
 
-The interface is available in English, Italian, German, French, and Chinese.
+The interface is available in Spanish, English, Italian, German, French and
+Chinese. The initial language follows macOS when supported and otherwise falls
+back to English.
 
 This makes it much easier to:
 
@@ -152,7 +155,7 @@ This makes it much easier to:
 
 Related reading:
 
-- [docs/Translations.md](docs/Translations.md)
+- [Translations.md](Translations.md)
 
 ## Thunderbolt Networking Extras
 
@@ -170,4 +173,4 @@ These are standard macOS networking features that can live alongside TargetBridg
 
 Related reading:
 
-- [docs/Hardware.md#thunderbolt-networking](docs/Hardware.md#thunderbolt-networking)
+- [Hardware.md#other-services-on-the-link](Hardware.md#other-services-on-the-link)

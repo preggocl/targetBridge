@@ -1,122 +1,91 @@
-# TargetBridge Quick Start (English)
+# TargetBridge Intel Sender quick start
 
-## Package contents
+This guide uses the Intel Sender from this fork and the unchanged TargetBridge
+Receiver from the original project.
 
-- `TargetBridge-Sender`
-- `TargetBridge-Receiver`
+## Before you start
 
-## Build the sender
+- Sender: Intel Mac running macOS 14 or later.
+- Receiver: a Mac capable of running the appropriate TargetBridge Receiver.
+- A real Thunderbolt cable and an active Thunderbolt Bridge service on both
+  Macs. A USB-C charging or DisplayPort-only cable is not sufficient.
 
-```bash
-cd TargetBridge-Sender
-./scripts/build_targetbridge_sender_app.sh
-```
+The app does not configure the network for you and does not disable Wi-Fi.
 
-Produced app:
+## Install
 
-- `build/TargetBridge.app`
+1. Install `TargetBridge Receiver.app` on the destination Mac.
+2. Install `TargetBridge Intel Sender.app` on the Intel Sender Mac.
+3. Keep the original and Intel applications separate; their bundle identifiers
+   and data are independent.
+4. Open the Receiver first and leave it on its waiting screen.
+5. Open the Intel Sender and grant Screen Recording when macOS asks. Quit and
+   reopen the app if macOS requires it after granting permission.
 
-## Build the receiver
+## Connect a display
 
-Before building, install the required dependencies on the iMac:
+1. Confirm that the Sender lists a Thunderbolt Bridge address. In the validated
+   setup this is `bridge0 · 10.0.0.1`.
+2. Click **Add display** if no display card exists.
+3. Open **Display settings** for that card.
+4. Choose **Thunderbolt Bridge** and its local interface address.
+5. Select the discovered Receiver. If Bonjour only shows its Wi-Fi address,
+   enter the Receiver's Thunderbolt address manually; the validated Receiver is
+   `10.0.0.2`.
+6. Choose **Extended Desktop** or **Duplicate Desktop**.
+7. Start with **Work 4K** for a 4K iMac, then click **Connect display**.
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install ffmpeg sdl2 pkgconf
-```
+When the first frame arrives, the Receiver switches to the stream. For an
+extended desktop, arrange the virtual display under **System Settings →
+Displays → Arrange** on the Sender.
 
-Then build:
+## Recommended 4K profiles
 
-Note: The build script automatically bundles FFmpeg and SDL2 inside the `.app` — no Homebrew is needed at runtime.
+- `Work 4K`: logical 2048 x 1152 HiDPI. This is the first profile to try.
+- `4K HiDPI 2304`: logical 2304 x 1296 HiDPI. It provides more workspace while
+  remaining within the validated Intel stream ceiling.
+- `Low Latency`: favors motion and responsiveness over maximum sharpness.
+- `Presentation`: favors a simple mirrored presentation workflow.
 
-```bash
-cd TargetBridge-Receiver
-./scripts/build_tbreceiver_c_app.sh
-```
+The logical size shown by macOS and the encoded pixel size are not the same.
+For example, a logical 2048 x 1152 HiDPI desktop can be encoded as a
+4096 x 2304 stream.
 
-Produced app:
+## Codecs
 
-- `build/TargetBridge Receiver.app`
+Leave codec selection automatic for first use. On the validated Intel iMac,
+hardware H.264 and HEVC are available. HEVC generally gives better quality at a
+given bitrate; H.264 is the compatibility fallback.
 
-Note:
+RAW NV12 bypasses video compression and may remove some codec delay, but it can
+approach 6.8 Gbit/s at 4096 x 2304 and 60 FPS before protocol overhead. Enable
+it only as an experiment when the Receiver advertises RAW support.
 
-- On an Intel iMac, build the receiver directly on that iMac so the resulting binary is `x86_64`.
+## Daily controls
 
-## Launch
+The menu-bar item exposes the active displays, Receiver selection, display
+mode, profiles and brightness. Changing display topology during a live stream
+causes a controlled stop and reconnect because macOS must rebuild the virtual
+display.
 
-### MacBook
+**Launch at login** starts the application with the user session. The separate
+automatic-connect option reconnects the saved display only when launched as a
+login item; opening the application manually does not auto-connect.
 
-Open:
+## Troubleshooting
 
-- `build/TargetBridge.app`
-
-On first launch, grant:
-
-- `Screen Recording` permission.
-
-### iMac
-
-Open:
-
-- `build/TargetBridge Receiver.app`
-
-Write down the IP address shown in the startup window.
-
-## Connect
-
-1. Start `TargetBridge Receiver` on the iMac first
-2. Read the Thunderbolt Bridge IP shown by the receiver
-3. Open `TargetBridge` on the MacBook
-4. Choose `Extended display` to use the iMac as a separate desktop, or `Mirror MacBook` to duplicate the MacBook screen
-5. Enter that IP in the `Receiver IP` field
-6. Press `Connect`
-
-When the first frame arrives, the receiver switches to fullscreen automatically.
-
-For extended desktop, open macOS **System Settings → Displays → Arrange** on the sender Mac after connecting. Place the external TargetBridge display where you want it, then select that display in Display Settings and choose the matching resolution if the iMac does not fill correctly. For the 27-inch 5K path, use the `5K` stream profile with the external display set to the matching 5120 × 2880 / 2560 × 1440 HiDPI mode.
-
-## Stream profiles
-
-- `Standard · 2560 × 1440`
-  - conservative baseline
-  - highest compatibility
-
-- `Smooth · 2560 × 1440 @ 60`
-  - lower latency motion
-
-- `Smooth+ · 3200 × 1800 @ 60`
-  - sharper motion profile
-
-- `Crisp · 3840 × 2160 @ 48`
-  - clearer text
-  - uses `HEVC`
-  - lighter than native 5K
-
-- `5K · 5120 × 2880 @ 48`
-  - native iMac 5K stream
-  - uses `HEVC`
-  - highest load
-
-## Auto-start the receiver
-
-To start the receiver automatically at user login on the iMac:
+- **Connect display is disabled:** choose both a local interface and Receiver
+  address.
+- **Permission prompt repeats:** verify the exact `TargetBridge Intel Sender`
+  entry under Privacy & Security, then fully quit and reopen it.
+- **Receiver found only on Wi-Fi:** select or enter its Thunderbolt address.
+- **Everything looks too large:** choose the matching 2048 x 1152 or
+  2304 x 1296 logical profile and allow the controlled reconnect.
+- **No first frame:** run the guided configuration check and inspect logs with:
 
 ```bash
-cd TargetBridge-Receiver
-./scripts/install_tbreceiverc_launch_agent.sh
+log stream --predicate 'subsystem == "com.targetbridge.intel-sender"'
 ```
 
-To remove it:
-
-```bash
-cd TargetBridge-Receiver
-./scripts/uninstall_tbreceiverc_launch_agent.sh
-```
-
-## Practical notes
-
-- the receiver should be started before the sender
-- extended desktop requires arranging the new display in macOS Display Settings on the sender
-- the sender can show or hide its top bar icon
-- if 5K is not responsive enough, switch back to `Crisp` or `Smooth+`
-- the sender build script uses a local DerivedData folder at `TargetBridge-Sender/.build/DerivedData`
+To remove only this fork, run `./uninstall.sh` from the repository. Review the
+script first; it does not remove the Receiver or network configuration.

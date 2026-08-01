@@ -1,93 +1,81 @@
-Hardware for TargetBridge
-=========================
+# Hardware and Thunderbolt Bridge
 
-Macs
-----
+## Sender and Receiver roles
 
-- Sender: Apple Silicon Mac. Intel Macs will NOT work.
-- Receiver: Intel or Apple Silicon Mac with a display.
-- Both Macs need to support Thunderbolt Bridge (e.g. iMacs >= late 2014)
+TargetBridge Intel Sender is built for `x86_64` Macs running macOS 14 or later.
+The Receiver can be Intel or Apple Silicon when the matching Receiver build is
+available. Both Macs must support a network path between them; Thunderbolt
+Bridge is preferred for predictable latency and isolation from ordinary LAN
+traffic.
 
-Typical setups:
-- Modern MacBook --TB--> Old iMac (or MacBook or ...)
-- Modern Mac mini --TB--> Modern iMac (or MacBook or ...)
+Verified pair:
 
-Many users will use this to reuse the excellent 5K (4.5K, 4K) display of their iMac.
+- Sender: iMac Retina 5K 27-inch 2020, Intel Core i5, macOS Sequoia 15.7.7.
+- Receiver: iMac Retina 4K 21.5-inch, Intel, macOS Monterey.
+- Cable path: Thunderbolt Bridge through `bridge0`.
 
-Tips:
-- Intel 27" 5K iMacs have excellent displays and are relatively inexpensive on the used market.
-- 2017–2019 models are already quite good, and models configured with a "Fusion Drive" include a connector for a replaceable Apple PCIe blade SSD.
-- The 2020 model does not have a replaceable SSD, but it is the last and most modern Intel iMac.
-- All Intel 27" iMacs have standard, easily replaceable RAM modules.
-- All Intel Macs are a dying breed, which is why you can get them so cheaply. Linux also works well on them, so you can repurpose them for other uses later.
-- Apple TB3/4/5 ports usually provide 15W power output.
-  Not much, but maybe enough to trickle-charge a modern MacBook with little load.
+Other combinations are tracked in [Compatibility](Compatibility.md).
 
+## Cables and adapters
 
-Cables
-------
+Use a cable explicitly certified for Thunderbolt. Thunderbolt 3, 4 and 5 cables
+are generally interoperable at the speed of the slowest device and cable.
+USB-C describes the connector, not the protocol: charging-only and ordinary
+DisplayPort cables do not provide Thunderbolt Bridge.
 
-Here is a list of cables tested by developers or users of this project (provided without any warranty):
+When connecting a USB-C-style Thunderbolt port to an older Thunderbolt 1 or 2
+port, use Apple's bidirectional Thunderbolt 3 to Thunderbolt 2 adapter plus a
+Thunderbolt cable. A generic USB-C to Mini DisplayPort adapter will not work for
+Thunderbolt networking.
 
-- OWC 0.8m Thunderbolt 5 Cable, Type OWCCBLTB5C0.8M, EAN 810159621748
-- OWC 1.0m Thunderbolt 5 Cable, Type OWCCBLTB5C1.0M, EAN 810159628105
+Cable models inherited from upstream reports, without warranty:
 
-Notes:
-- If you want to buy future-proof cables, go for Thunderbolt 5 (TB5).
-- A TB4 or TB3 cable will also usually work.
-- TB3/4/5 cables are backward and forward compatible.
-  The slowest part (sender, receiver, cable) will determine the speed.
-- TB4 and TB5 cables up to 1m are usually passive, longer cables are active.
-- USB4 40Gb/s cables might work, but are less strictly certified than TB cables.
+- OWC 0.8 m Thunderbolt 5, `OWCCBLTB5C0.8M`.
+- OWC 1.0 m Thunderbolt 5, `OWCCBLTB5C1.0M`.
 
+## Network behavior
 
-Adapters
---------
+TargetBridge transports its protocol over TCP. It does not send raw DisplayPort
+video over the cable. macOS creates the Thunderbolt Bridge interface, assigns or
+accepts its IP configuration, and provides the route.
 
-When older Macs are involved, they might only have Thunderbolt 2 ports with
-Mini-DisplayPort-style connectors. If you want to connect a newer Mac to one of
-these, you will need an adapter:
+The Intel Sender:
 
-- Apple Thunderbolt 3 (USB-C) to Thunderbolt 2 Adapter, Model MYH93AM/A / MMEL2AM/A.
-  This adapter fits into a TB3 port and accepts a TB2 cable. With Macs, you can also use this with a TB4 or TB5 port.
+- enumerates active IPv4 interfaces;
+- lets the user choose the source address for each display;
+- binds the connection to that address;
+- can infer a Receiver address from Bonjour information and the selected
+  interface's actual address and netmask;
+- never assumes that every installation uses `10.0.0.1/24`;
+- does not automatically change IP, mask, router, service order or Wi-Fi state.
 
-Note: Generic USB C to Mini DisplayPort adapters will not work. They lack the required circuitry to pass through Thunderbolt data. You must use an adapter that explicitly supports Thunderbolt, not just DisplayPort.
+The validated addresses happen to be Sender `10.0.0.1/24` and Receiver
+`10.0.0.2`, but they are test data rather than hardcoded requirements.
 
+Before troubleshooting TargetBridge, verify the route without changing it:
 
-Thunderbolt Networking
-----------------------
+```bash
+route -n get <receiver-ip>
+ping -c 3 <receiver-ip>
+```
 
-TargetBridge uses Thunderbolt Bridge for low-latency display streaming, but the
-same link can also be used as a regular macOS network connection.
+The route should use the intended Thunderbolt Bridge interface. Successful ping
+confirms reachability, not sustained video performance.
 
-This means a TargetBridge setup can optionally also be used for common
-peer-to-peer services between the sender Mac and the receiver Mac, without any
-additional TargetBridge code.
+## One cable or two
 
-Examples:
-- Internet Sharing from one Mac to the other
-- File Sharing over Thunderbolt Bridge
-- SSH / SFTP access between the Macs
-- Time Machine backups to storage attached to the other Mac
-- Printer sharing for USB printers attached to the other Mac
+One display uses one TCP connection bound to one local interface. Adding a
+second Thunderbolt cable does not automatically combine bandwidth or lower
+latency. Bonding or striping would require a new multipath protocol at both
+ends, and compressed 4K profiles already use far less bandwidth than a single
+Thunderbolt link provides.
 
-Practical ideas:
-- A receiver iMac can expose its Ethernet, Wi-Fi, or attached storage to the
-  sender Mac over the same Thunderbolt cable.
-- A sender MacBook can provide internet access to an offline receiver Mac via
-  macOS Internet Sharing.
-- An iMac with attached SSDs or HDDs can act as a fast Thunderbolt-connected
-  file server for the sender.
+Extra cables remain useful for separate Receiver displays: each display can use
+its own interface, address and stream.
 
-Setup notes:
-- On macOS, this is configured with built-in system features such as
-  Thunderbolt Bridge, Internet Sharing, File Sharing, Remote Login, and Printer
-  Sharing.
-- No extra TargetBridge feature needs to be enabled for this. It is a standard
-  network/service setup that happens alongside the display link.
-- Performance and availability depend on the specific Macs, ports, cable, and
-  service configuration.
+## Other services on the link
 
-Out of scope for this document:
-- Shared keyboard/mouse control is a separate feature idea and is not part of
-  the standard Thunderbolt Bridge networking setup described here.
+Thunderbolt Bridge is a normal macOS network link and can also carry File
+Sharing, SSH/SFTP, Internet Sharing, Time Machine or printer traffic. Those are
+macOS services, not TargetBridge features. Heavy simultaneous transfers can
+still affect latency, so isolate performance tests from unrelated traffic.

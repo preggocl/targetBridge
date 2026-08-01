@@ -7,6 +7,7 @@ TargetBridge now uses shared JSON language files for both the Sender and the Rec
 All shared language files are in:
 
 - `TargetBridge-Shared/Languages/en.json`
+- `TargetBridge-Shared/Languages/es.json`
 - `TargetBridge-Shared/Languages/it.json`
 - `TargetBridge-Shared/Languages/de.json`
 - `TargetBridge-Shared/Languages/fr.json`
@@ -73,8 +74,10 @@ Do not translate or remove the placeholder tokens themselves. Only translate the
 - Do not rename keys.
 - Do not remove placeholders.
 - Try to keep the same meaning across all languages.
-- If you add a new key in `en.json`, also add it to `it.json`, `de.json`, `fr.json`, and `zh.json`.
-- A feature is not complete until its visible text is reviewed in English, Italian, German, French, and Chinese.
+- If you add a new key in `en.json`, also add it to `es.json`, `it.json`,
+  `de.json`, `fr.json`, and `zh.json`.
+- A feature is not complete until its visible text is reviewed in Spanish,
+  English, Italian, German, French and Chinese.
 
 ## Adding a new language
 
@@ -101,7 +104,7 @@ After editing translations, rebuild:
 
 ```bash
 cd TargetBridge-Sender
-./scripts/build_targetbridge_sender_app.sh
+./scripts/build_intel_sender_app.sh
 ```
 
 ```bash

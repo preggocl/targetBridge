@@ -1,5 +1,9 @@
 # TargetBridge 快速上手（中文）
 
+> **保留的上游参考文档。** 以下软件包名称和安装步骤描述原始项目，并非此分支的
+> Intel Sender 软件包。此译文完成更新和验证之前，请参阅
+> [QuickStart-EN.md](QuickStart-EN.md)。
+
 ## 软件包内容
 
 - `TargetBridge-Sender`（发送端，运行在 Apple Silicon Mac 上）

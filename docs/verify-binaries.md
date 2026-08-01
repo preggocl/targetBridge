@@ -39,7 +39,7 @@ Run the `gh attestation verify` command on the downloaded ZIP file, specifying
 the official repository owner and name:
 
 ```bash
-gh attestation verify "/path/to/TargetBridge-Intel-Sender-x86_64.app.zip" --repo "preggocl/targetBridge"
+gh attestation verify "/path/to/TargetBridge-Intel-Sender-x86_64.zip" --repo "preggocl/targetbridge-intel"
 ```
 
 ### Expected Successful Output
@@ -52,7 +52,7 @@ Loaded 1 attestation for TargetBridge-Intel-Sender-x86_64.app.zip
 ✓ Verified 1 attestation
 ✓ Deposited in public transparency log
 ✓ Signed by GitHub Actions
-✓ Originated from preggocl/targetBridge (ref: refs/tags/v3.3.0-intel.1)
+✓ Originated from preggocl/targetbridge-intel (ref: refs/tags/v3.3.0-intel.1)
 ```
 
 > [!IMPORTANT]

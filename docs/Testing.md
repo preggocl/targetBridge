@@ -1,8 +1,8 @@
-# Testing TargetBridge Without Hardware
+# Testing TargetBridge Intel Sender
 
-Everything on this page runs on one Mac with **no Thunderbolt cable, no
-second machine, and no Apple Silicon requirement** (except where noted).
-CI runs the first two suites on every push/PR.
+The unit and parser suites run without a Thunderbolt cable or second Mac. Real
+display quality, latency, VideoToolbox behavior and Receiver compatibility still
+require two-machine tests. Keep those two kinds of evidence separate.
 
 ## 1. Sender unit tests (Swift)
 
@@ -10,17 +10,42 @@ Covers the wire protocol (framing, corrupt-length rejection, unknown-type
 skipping, input-event encoder parity with `JSONDecoder`), the discovered-
 receiver model (which IP is dialed per transport), connection diagnostics
 (link-local interface scoping, failure-detail composition), and the
-automation parsers behind `targetbridge://` URLs and `--connect` launch args.
+automation parsers behind `targetbridge-intel://` URLs and `--connect` launch
+arguments.
 
 ```bash
 cd TargetBridge-Sender
-xcodegen generate     # only needed after changing project.yml or adding files
-xcodebuild test -project TargetBridge.xcodeproj -scheme TBDisplaySender -destination 'platform=macOS'
+xcodebuild test \
+  -project TargetBridge.xcodeproj \
+  -scheme TBDisplaySender \
+  -configuration Debug \
+  -destination 'platform=macOS,arch=x86_64' \
+  ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO
 ```
 
 Test sources live in `TargetBridge-Sender/TBDisplaySenderTests/`.
 
-## 2. Receiver parser tests (C)
+The prerelease candidate completed 82 Sender tests with no failures on the
+validated Intel iMac. A passing suite does not replace the real Receiver test.
+
+## 2. Intel release package
+
+Build the same separately identified application users will install:
+
+```bash
+TargetBridge-Sender/scripts/build_intel_sender_app.sh
+file "build-intel/TargetBridge Intel Sender.app/Contents/MacOS/TargetBridge Intel Sender"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+  "build-intel/TargetBridge Intel Sender.app/Contents/Info.plist"
+codesign --verify --deep --strict --verbose=2 \
+  "build-intel/TargetBridge Intel Sender.app"
+```
+
+Expected architecture is only `x86_64`; expected identifier is
+`com.targetbridge.intel-sender`. The local build uses an ad-hoc signature for
+repeatable testing. That is not Developer ID signing or notarization.
+
+## 3. Receiver parser tests (C)
 
 Unit tests for the streaming packet parser in `net.c` — fragmented and
 contiguous feeds, the NUL-sentinel guarantee, corrupt/oversized length
@@ -34,7 +59,7 @@ make test
 
 Test sources live in `TargetBridge-Receiver/TBReceiverC/tests/`.
 
-## 3. Mock sender (protocol-level fault injection)
+## 4. Mock sender (protocol-level fault injection)
 
 `TargetBridge-Receiver/TBReceiverC/tests/mock_sender.py` (stdlib-only
 Python 3) speaks the full wire protocol against a running receiver:
@@ -55,7 +80,7 @@ cd TargetBridge-Receiver/TBReceiverC && make && ./tbreceiver --windowed
 python3 TargetBridge-Receiver/TBReceiverC/tests/mock_sender.py --mode stream --duration 5
 ```
 
-## 4. Loopback smoke test (one command)
+## 5. Loopback smoke test (one command)
 
 Builds the receiver, launches it windowed, and drives all mock-sender
 phases with pass/fail assertions on the receiver's log:
@@ -69,7 +94,21 @@ Needs a GUI session (an SDL window opens briefly) and the receiver build
 deps (`brew install ffmpeg sdl2 pkgconf`), so it is a local dev tool rather
 than a CI job.
 
-## 5. Real sender ↔ receiver on one Mac (no cable)
+## 6. VideoToolbox capability probe
+
+Run the probe on the Sender hardware being reported:
+
+```bash
+TargetBridge-Sender/scripts/probe_videotoolbox_intel.sh /path/to/result.json
+```
+
+The output proves whether VideoToolbox can create and prepare a
+hardware-required session for each requested codec and size. It does not prove
+delivered FPS, decoder compatibility or visual quality. Store curated evidence
+under `docs/evidence/videotoolbox/` with a descriptive hardware and OS filename;
+do not commit serial numbers, usernames, private IP inventories or credentials.
+
+## 7. Real sender and receiver on one Mac (no cable)
 
 The receiver binds `0.0.0.0:54321` and accepts any peer, so an Apple
 Silicon Mac can stream to a receiver running on itself over the LAN
@@ -77,12 +116,32 @@ interface (the sender refuses `127.0.0.1`, so use the machine's own LAN IP
 for both ends):
 
 ```bash
-open build/TargetBridge.app   # sender: pick the LAN interface, enter the Mac's own LAN IP
+open "build-intel/TargetBridge Intel Sender.app"
 ./tbreceiver --windowed       # receiver on the same Mac
 ```
 
 This exercises the true capture → encode → decode → render path minus the
 Thunderbolt link itself.
+
+## 8. Two-Mac acceptance test
+
+For each Receiver and profile, record at least:
+
+- Sender and Receiver model, architecture and macOS version;
+- app version/commit and whether Rosetta 2 is involved;
+- cable type, selected interface and route;
+- Receiver address selected by discovery or entered manually;
+- duplicate or extended mode and logical HiDPI size;
+- encoded resolution, codec, encoder ID, hardware flag and fallback;
+- target bitrate, delivered FPS, first-frame time and errors;
+- cursor/input latency observations, dropped frames and thermals;
+- reconnect, sleep/wake and permission behavior;
+- test duration.
+
+Start with 2048 x 1152, continue to 2304 x 1296, then test 5K or RAW only when
+the stable profiles work. A useful daily-work result should run for at least 15
+minutes; a release-confidence run should be longer and include normal desktop
+activity rather than a static image.
 
 ## Debugging a live connection
 
@@ -90,7 +149,7 @@ The sender logs its connection lifecycle (dial target, interface, waiting/
 failed states, timeouts) to unified logging:
 
 ```bash
-log stream --predicate 'subsystem == "com.targetbridge.sender"'
+log stream --predicate 'subsystem == "com.targetbridge.intel-sender"'
 ```
 
 The receiver logs to stderr; under the LaunchAgent that lands in
@@ -114,7 +173,6 @@ targetbridge connect --receiver <receiver-ip> --mode extended --preset 5k60
 ```
 
 After at least one minute of normal desktop use, note the Sender FPS shown in
-the session card, whether input remains responsive, and any capture or decoder
-errors. For a two-receiver experiment, start one session per receiver and
-record the FPS for each session separately. Include the sender model, macOS
-version, receiver model, cable type, and selected transport with the report.
+the display card, whether input remains responsive, and any capture or decoder
+errors. For a two-Receiver experiment, start one display per Receiver and record
+FPS separately. Include the complete acceptance-test fields above.

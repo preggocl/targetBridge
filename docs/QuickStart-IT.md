@@ -1,5 +1,11 @@
 # TargetBridge Quick Start (Italiano)
 
+> **Documento upstream conservato come riferimento.** Le istruzioni di
+> installazione e i nomi dei pacchetti qui sotto descrivono il progetto
+> originale e non il pacchetto Intel di questo fork. Per TargetBridge Intel
+> Sender usa [QuickStart-EN.md](QuickStart-EN.md) finché questa traduzione non
+> viene aggiornata e verificata.
+
 ## Contenuto del pacchetto
 
 - `TargetBridge-Sender`

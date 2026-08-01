@@ -1,240 +1,154 @@
 # TargetBridge Intel Sender
 
-This `intel-sender` branch is an independently packaged **Intel x86_64 Sender**
-variant of [swellweb/TargetBridge](https://github.com/swellweb/targetBridge),
-maintained by **AndyStuardo**. It is intended for Intel Macs running the Sender
-and reuses an iMac as a 4K or 5K display over Thunderbolt Bridge.
+TargetBridge Intel Sender is an independent `x86_64` Sender fork of
+[TargetBridge](https://github.com/swellweb/targetBridge), maintained by
+**AndyStuardo**. It lets an Intel Mac create a virtual display and present it on
+another Mac running the TargetBridge Receiver, with Thunderbolt Bridge as the
+preferred transport.
 
-Current validated setup:
+<img src="docs/assets/targetbridge-intel-sender-icon-master.png"
+     alt="TargetBridge Intel Sender icon" width="180">
 
-- Sender: Intel iMac 27-inch 5K (2020), macOS Sequoia 15.7.7
-- Receiver: unchanged upstream TargetBridge Receiver on an Intel iMac 21.5-inch 4K, macOS Monterey
-- transport: Thunderbolt Bridge with a dedicated IPv4 route
-- prioritized HiDPI modes: 2048 x 1152 and 2304 x 1296
-- hardware VideoToolbox H.264 and HEVC encoding on Intel
+The fork began with a specific setup: reuse a 21.5-inch 4K Intel iMac running
+macOS Monterey as an extended display for a 27-inch 5K Intel iMac from 2020
+running macOS Sequoia. The work remains useful outside that pair, but only the
+configurations listed in [Compatibility](docs/Compatibility.md) should be
+treated as verified.
 
-The packaged application is `TargetBridge Intel Sender.app`, bundle identifier
-`com.targetbridge.intel-sender`, and is built as a thin `x86_64` executable. It
-has separate preferences and data and does not replace the original Sender or
-Receiver. The Intel package is not presented as an Apple Silicon build; use the
-upstream Sender for Apple Silicon Macs.
+> Status: `3.3.0-intel.1` prerelease candidate. The Intel Sender is usable on
+> the validated hardware, but the downloadable package is not yet signed with
+> a Developer ID or notarized by Apple.
 
-## Improvements in the Intel Sender fork
+## Why this fork exists
 
-- Intel-native `x86_64` application with its own name, icon, bundle identifier,
-  preferences, logs and application data.
-- `Work 4K` and Intel-safe 4K HiDPI profiles, prioritizing logical
-  `2048 x 1152` and `2304 x 1296` workspaces.
-- Quick controls in a single menu-bar icon for connect/disconnect, discovered
-  Receivers, Duplicate/Extended Desktop and all available display profiles.
-- Spanish localization with automatic system-language selection and English
-  fallback. A few inherited advanced descriptions may still appear in English.
-- Optional launch at login and optional automatic reconnection to the saved
-  Receiver/display configuration.
-- Hardware VideoToolbox H.264 and HEVC selection on Intel, with encoder,
-  fallback, resolution, bitrate, FPS and error telemetry.
-- Experimental raw NV12 transport, explicitly opt-in and guarded by Receiver
-  capability detection.
-- Improved Thunderbolt Bridge interface recognition, while leaving Wi-Fi and
-  macOS network configuration untouched.
-- Safe, auditable `uninstall.sh` that removes only the Intel Sender variant.
+The upstream Sender was documented and packaged for Apple Silicon. This fork
+keeps the protocol and the original Receiver intact while adding a separately
+packaged Intel Sender and the diagnostics needed to tell whether an Intel Mac
+can capture and encode the selected display reliably.
 
-The menu-bar status item is the Sender's quick-control surface. The separate
-purple macOS screen-sharing indicator is owned by macOS and cannot be merged or
-removed by TargetBridge while screen capture is active.
+The application is deliberately isolated from the original installation:
 
-## Receiver session and Lock Screen
+- application name: `TargetBridge Intel Sender.app`
+- architecture: thin `x86_64`
+- bundle identifier: `com.targetbridge.intel-sender`
+- URL scheme: `targetbridge-intel`
+- preferences, logs and Application Support data owned by the Intel variant
+- safe `uninstall.sh` which targets only those Intel-variant files
 
-The unchanged Receiver runs inside the logged-in macOS user session. It does
-not run above the secure Lock Screen and this fork deliberately does not store,
-transmit or type a Receiver account password. An ordinary application must not
-bypass macOS authentication; FileVault startup login also necessarily requires
-local authentication.
+It does not replace or remove TargetBridge Receiver, AirDisplay, Thunderbolt
+Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
 
-When the Receiver is closed, no TargetBridge process remains responsible for
-keeping that display awake, so the Receiver Mac follows its own Lock Screen,
-screen-saver and display-sleep settings. A future, separately packaged Receiver
-variant can safely add launch-at-login, automatic listening/reconnection and a
-`Keep display awake while waiting or connected` option. Such an option can
-inhibit idle display sleep while the Receiver is running, but it cannot and
-should not unlock a locked Mac. TargetBridge will not automatically weaken or
-change the user's macOS security settings.
+## What has changed
 
-Build it with:
+- Intel-native Sender build and packaging.
+- 4K-oriented `Work 4K` profile plus logical HiDPI modes `2048 x 1152` and
+  `2304 x 1296`.
+- Hardware VideoToolbox probing and live telemetry for codec, encoder, hardware
+  status, fallback, FPS, bitrate, resolution and errors.
+- H.264 and HEVC operation verified on the 2020 Intel iMac.
+- Optional RAW NV12 transport when both ends advertise support. This remains
+  experimental because its uncompressed bandwidth and memory-copy cost can be
+  greater than its codec-latency saving.
+- Better Thunderbolt Bridge recognition without changing network services or
+  disabling Wi-Fi.
+- Quick controls in one menu-bar item: displays, Receivers, duplicate/extended
+  mode, profiles, codec state and brightness.
+- Spanish localization, automatic language selection and English fallback.
+- Optional launch at login and login-only reconnection. Opening the app
+  manually does not trigger automatic connection.
+- Attached settings and telemetry panels, improved first-use connection action,
+  and user-facing `Display/Pantalla` terminology while the protocol continues
+  to use `session` internally.
+- A distinct petroleum-blue `x86` application icon. The functional menu-bar
+  icon remains unchanged.
+
+## Verified setup and results
+
+| Role | Hardware and software |
+|---|---|
+| Sender | iMac Retina 5K 27-inch (2020), Intel Core i5 3.3 GHz, Radeon Pro 5300, macOS Sequoia 15.7.7 |
+| Receiver | iMac Retina 4K 21.5-inch, Intel, macOS Monterey, unchanged upstream Receiver |
+| Link | Thunderbolt Bridge, `10.0.0.1` to `10.0.0.2` through `bridge0` |
+| Toolchain | Xcode 26.3 (17C529) |
+
+The minimal Debug build, Release package and unit-test suite all complete as
+`x86_64`. The VideoToolbox probe created hardware-required H.264 GVA and HEVC
+AVE compression sessions at both prioritized logical resolutions. A real
+end-to-end session subsequently reached a 4096 x 2304 HEVC stream at 30
+delivered FPS.
+
+See [Intel Sender audit](docs/Intel-Sender-Audit.md) for the exact findings and
+[machine-readable VideoToolbox evidence](docs/evidence/videotoolbox/imac-2020-sequoia-15.7.7.json)
+for the probe output.
+
+## Install and connect
+
+The Receiver is not repackaged by this fork. Install the suitable Receiver from
+the [original TargetBridge releases](https://github.com/swellweb/targetBridge/releases)
+on the destination Mac, then follow:
+
+- [Quick start — Español](docs/QuickStart-ES.md)
+- [Quick start — English](docs/QuickStart-EN.md)
+
+To build the Intel Sender locally:
 
 ```bash
 TargetBridge-Sender/scripts/build_intel_sender_app.sh
 ```
 
-The result is written to `build-intel/TargetBridge Intel Sender.app`. See the
-[Intel Sender audit and test procedure](docs/Intel-Sender-Audit.md) for verified
-hardware results, limitations, installation testing, and safe uninstall steps.
+The result is `build-intel/TargetBridge Intel Sender.app`. Copy it to
+`/Applications` without replacing the original TargetBridge installation.
 
-This fork preserves the original MIT license, copyright, project attribution,
-and community credits. The original Receiver source is intentionally unchanged.
+## Compatibility direction
 
-> Development status: preview branch tested on the hardware above. No public
-> binary Release has been published yet.
+Sender and Receiver are roles, not fixed hardware directions. An Intel Mac can
+send to an Apple Silicon Mac if the latter runs a compatible arm64 Receiver.
+The shared protocol does not prohibit that arrangement, but it has not yet been
+verified by this fork. Conversely, the upstream Apple Silicon Sender can use an
+Intel Receiver; that remains an upstream workflow.
 
----
+The Intel Sender is currently a thin `x86_64` application. It may launch on
+Apple Silicon through Rosetta 2, but that is not the same as native arm64
+support. Planned M1 tests are tracked in [Compatibility](docs/Compatibility.md)
+and must be completed before making broader claims.
 
-## Upstream TargetBridge documentation
+## Documentation
 
-The documentation below is inherited from the upstream project and describes
-the original Apple Silicon Sender and the broader TargetBridge feature set.
+- [Documentation map](docs/README.md)
+- [Features and controls](docs/Features.md)
+- [Hardware and Thunderbolt Bridge](docs/Hardware.md)
+- [Compatibility and test matrix](docs/Compatibility.md)
+- [Testing and reporting results](docs/Testing.md)
+- [Audit and viability report](docs/Intel-Sender-Audit.md)
+- [Release and packaging process](docs/Release-Process.md)
+- [Automation](docs/Automation.md)
+- [Add-ons](docs/Addons.md)
+- [Translations](docs/Translations.md)
+- [Safe uninstall script](uninstall.sh)
 
-![TargetBridge Overview](images/connection-diagram.svg)
+The inherited guides are maintained where the underlying feature still exists.
+They may be corrected and extended for this fork; they do not need to remain
+word-for-word copies of upstream documentation. When behavior applies only to
+the upstream Apple Silicon Sender or only to the Intel fork, the page should say
+so explicitly.
 
-### TargetBridge
+## Security, privacy and network behavior
 
-Apple dropped Target Display Mode in late 2014 with the 5K iMac — and it never came back.
+TargetBridge Intel Sender requests Screen Recording because it must capture the
+display it sends. Input or audio add-ons can require additional macOS
+permissions. The app does not store Receiver login credentials and does not
+bypass the Lock Screen or FileVault.
 
-TargetBridge brings it back via software, streaming your screen at up to 5K over a direct Thunderbolt connection, e.g. to an iMac.
+It reads available network interfaces and binds the selected local address. It
+does not assign IP addresses, change subnet masks or routers, reorder network
+services, disable Wi-Fi, or combine multiple Thunderbolt cables into one stream.
 
-It's free and open source software, no subscription and no dongle required.
+## License and attribution
 
-If it is useful to you, spread the news and give us a ⭐ on GitHub.
+TargetBridge Intel Sender is based on the MIT-licensed TargetBridge project by
+Marco Caciotti (`swellweb`) and its open-source community. The Intel fork is
+developed and maintained by AndyStuardo. The original copyright and license
+notice in [LICENSE](LICENSE) are preserved.
 
-## Support and Thanks
-
-TargetBridge is free and open source. Sponsorship is never required, but monthly
-and one-time contributions make it possible to reserve time for macOS
-compatibility, bug fixes, hardware testing, and future useful tools for Mac.
-
-Thank you to everyone supporting TargetBridge through GitHub Sponsors. Your
-contributions help keep the project moving forward.
-
-[Support the original TargetBridge project on GitHub Sponsors](https://github.com/sponsors/swellweb)
-
-## TargetBridge 3.3
-
-TargetBridge 3.3 improves the reliability of the display connection while
-keeping the established multi-Mac workspace features:
-
-- mirror mode and extended desktop mode
-- multiple receivers from one sender
-- experimental `Network Link` transport in addition to Thunderbolt Bridge
-- streamed system audio
-- shared JSON localization for Sender and Receiver
-- official manifest-based addons
-- `Input Dockstation` with master/slave keyboard and mouse control
-- text clipboard sync tied to the active input master
-- remote brightness control from the sender
-- automatic receiver discovery and extended-layout restore
-- remote connection automation via URL scheme, CLI wrapper, launch args, and SSH recipes
-- remembers the selected virtual-display resolution for each receiver
-- configurable Receiver Master shortcuts, including protected macOS shortcuts such as Space switching
-- mock sender, parser tests, and a loopback smoke test for Receiver resilience without a second Mac
-- improved direct `Duplicate Desktop` startup, with a short wait for the virtual display to become available
-- permission cards refresh when TargetBridge returns from macOS Privacy & Security settings
-- Receiver stays on its waiting screen until a real session starts, avoiding a distracting fullscreen flash
-- experimental `5K 60` profile for recent Apple Silicon; use `5K 48` for the most stable work sessions
-
-## Feature Guides
-
-- Overview hub: [docs/Features.md](docs/Features.md)
-- Mirror mode and Extended Desktop: [docs/Features.md#display-modes](docs/Features.md#display-modes)
-- Guided configuration check: [docs/Features.md#guided-configuration-check](docs/Features.md#guided-configuration-check)
-- Multi-receiver layouts: [docs/Features.md#multi-receiver-workflows](docs/Features.md#multi-receiver-workflows)
-- Network Link (experimental): [docs/Features.md#network-link-experimental](docs/Features.md#network-link-experimental)
-- Audio Relay: [docs/Features.md#audio-relay](docs/Features.md#audio-relay)
-- Input Dockstation, clipboard sync, master/slave roles, and Receiver Master shortcuts: [docs/Features.md#input-dockstation](docs/Features.md#input-dockstation)
-- Remote brightness control: [docs/Features.md#remote-brightness-control](docs/Features.md#remote-brightness-control)
-- Remote connection & automation (URL scheme, launch args, SSH, login/wake): [docs/Automation.md](docs/Automation.md)
-- Shared translations (English, Italian, German, French, and Chinese): [docs/Features.md#shared-translations](docs/Features.md#shared-translations)
-- Thunderbolt networking extras (SSH/SFTP, file sharing, Internet Sharing): [docs/Features.md#thunderbolt-networking-extras](docs/Features.md#thunderbolt-networking-extras)
-
-## Core Features
-
-- Sender can stream either a mirrored desktop or an extended virtual display. See [Display Modes](docs/Features.md#display-modes).
-- One sender can drive multiple receiver Macs over separate cables. See [Multi-Receiver Workflows](docs/Features.md#multi-receiver-workflows).
-- Stream profiles range from `2560 x 1440` to `5120 x 2880` with H.264/HEVC selection based on capability. `5K 60` is an experimental profile for recent Apple Silicon; `5K 48` remains recommended for reliable daily work. See [Display Modes](docs/Features.md#display-modes).
-- Receiver discovery is automatic over Bonjour. Extended-display arrangement is remembered per receiver when possible. See [Display Modes](docs/Features.md#display-modes).
-- Thunderbolt Bridge remains the primary low-latency path, with `Network Link` available as an experimental addon-gated transport. See [Network Link](docs/Features.md#network-link-experimental).
-
-## Official Addons
-
-TargetBridge now has a conservative manifest-based addon system. Official manifests ship with the app, and user manifests can be imported from the settings UI.
-
-- `Network Link`: local Ethernet/Wi-Fi transport path for the same display pipeline. See [docs/Addons.md#official-addons](docs/Addons.md#official-addons) and [Network Link](docs/Features.md#network-link-experimental).
-- `Audio Relay`: streamed system audio from sender to receiver. See [docs/audio.md](docs/audio.md) and [docs/Addons.md#official-addons](docs/Addons.md#official-addons).
-- `Input Dockstation`: keyboard/mouse relay, master/slave roles, slave switching, and text clipboard sync. See [docs/Addons.md#input-dockstation](docs/Addons.md#input-dockstation) and [Input Dockstation](docs/Features.md#input-dockstation).
-
-## Intel Sender requirements
-
-- Sender: Intel Mac (`x86_64`) running macOS 14 Sonoma or later
-- Receiver: the unchanged upstream TargetBridge Receiver on a compatible iMac
-- Thunderbolt cable
-- A working Thunderbolt Bridge network path between both Macs
-
-## Intel fork download
-
-**[→ Intel Sender releases](https://github.com/preggocl/targetBridge/releases)**
-
-- `TargetBridge Intel Sender.app` — separate Intel-only Sender application
-- The Receiver is intentionally not repackaged by this fork; install the
-  appropriate Receiver from the [original TargetBridge releases](https://github.com/swellweb/targetBridge/releases/latest).
-
-The Intel release is not yet published until its release candidate is signed
-off. Until then, build the package from this branch using the documented
-packaging script. On first launch, grant Screen Recording permission.
-
-If you build from source, app outputs go into `build/` folder.
-
-> **"App is damaged" warning?** macOS quarantines unsigned apps downloaded from the browser. Run this in Terminal, then try again:
-> ```bash
-> xattr -cr ~/Downloads/TargetBridge-arm64.app
-> xattr -cr ~/Downloads/TargetBridge-Receiver-arm64.app
-> xattr -cr ~/Downloads/TargetBridge-Receiver-x86_64.app
-> ```
-
-## Permissions
-
-- Sender usually needs `Screen Recording`.
-- `Input Dockstation` may also require `Accessibility` and `Input Monitoring`, depending on the active role.
-- Receiver may require `Accessibility` or `Input Monitoring` when it participates in input relay.
-- In practice, `Input Dockstation` is a two-sided feature: one Mac captures input, the other injects it, so permissions may be needed on both Sender and Receiver.
-- See [docs/Addons.md#input-dockstation](docs/Addons.md#input-dockstation) for the permission matrix.
-
-## Quick start
-
-- Italian: [docs/QuickStart-IT.md](docs/QuickStart-IT.md)
-- English: [docs/QuickStart-EN.md](docs/QuickStart-EN.md)
-- 中文: [docs/QuickStart-ZH.md](docs/QuickStart-ZH.md)
-- Translation guide: [docs/Translations.md](docs/Translations.md)
-
-## Detailed Documentation
-
-- Feature overview: [docs/Features.md](docs/Features.md)
-- Remote connection & automation: [docs/Automation.md](docs/Automation.md)
-- Addon manifests and capability model: [docs/Addons.md](docs/Addons.md)
-- Audio transport internals: [docs/audio.md](docs/audio.md)
-- Hardware, cables, adapters, and Thunderbolt Bridge networking: [docs/Hardware.md](docs/Hardware.md)
-- Translation workflow: [docs/Translations.md](docs/Translations.md)
-- Testing without hardware (unit tests, mock sender, loopback smoke): [docs/Testing.md](docs/Testing.md)
-- Binary verification: [docs/verify-binaries.md](docs/verify-binaries.md)
-
-## Licensing and brand
-
-TargetBridge source code is available under the MIT License. Please preserve the
-required copyright and license notices when redistributing copies or substantial
-portions of the software.
-
-Project branding and commercial use are handled separately from the source code
-license. For now, the canonical source-code license is:
-
-- [LICENSE](LICENSE)
-
-## Screenshots
-
-**Sender (Apple Silicon Mac) — session dashboard:**
-![TargetBridge Sender dashboard](images/sender-dashboard.png)
-
-**Receiver — ready for a sender stream:**
-![TargetBridge Receiver dashboard](images/receiver-dashboard.png)
-
-**macOS Displays — extended desktop target:**
-![TargetBridge extended desktop](images/display-extend.png)
-
-**macOS Displays — mirrored desktop target:**
-![TargetBridge mirrored desktop](images/display-mirror.png)
+The `x86` badge is this fork's compatibility marker. It does not use the Intel
+corporate logo and does not imply sponsorship or endorsement by Intel.
