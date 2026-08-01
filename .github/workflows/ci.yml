@@ -1,6 +1,7 @@
 name: Intel Sender CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [intel-sender]
   pull_request:
