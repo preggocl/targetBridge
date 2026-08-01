@@ -5,6 +5,9 @@ import Foundation
 import Network
 import ServiceManagement
 
+private let tbIntelSenderLaunchAgentURL = FileManager.default.homeDirectoryForCurrentUser
+    .appendingPathComponent("Library/LaunchAgents/com.targetbridge.intel-sender.plist")
+
 enum TBTransportKind: String, CaseIterable, Identifiable {
     case thunderboltBridge
     case networkLink
@@ -59,7 +62,7 @@ final class TBDisplaySenderService: ObservableObject {
         }
     }
     @Published var showsMenuBarIcon = true
-    @Published private(set) var launchesAtLogin = SMAppService.mainApp.status == .enabled
+    @Published private(set) var launchesAtLogin = FileManager.default.fileExists(atPath: tbIntelSenderLaunchAgentURL.path)
     @Published var connectsAtLaunch: Bool = UserDefaults.standard.bool(forKey: "fd.tbdisplaysender.connectsAtLaunch") {
         didSet {
             UserDefaults.standard.set(connectsAtLaunch, forKey: "fd.tbdisplaysender.connectsAtLaunch")
@@ -136,6 +139,10 @@ final class TBDisplaySenderService: ObservableObject {
         refreshLocalInterfaces()
         addonStore.refresh()
         restorePersistedSessions()
+        if SMAppService.mainApp.status == .enabled,
+           !FileManager.default.fileExists(atPath: tbIntelSenderLaunchAgentURL.path) {
+            setLaunchAtLogin(true)
+        }
         startClipboardMonitoring()
         activationObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
@@ -154,21 +161,61 @@ final class TBDisplaySenderService: ObservableObject {
 
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
+            // Migrate away from the main-app login item: it cannot identify why
+            // the app was opened, so it cannot distinguish login from a manual launch.
+            if SMAppService.mainApp.status == .enabled {
+                try? SMAppService.mainApp.unregister()
+            }
             if enabled {
-                try SMAppService.mainApp.register()
+                guard let executable = Bundle.main.executableURL?.path else {
+                    throw NSError(domain: "TargetBridgeLogin", code: 1, userInfo: [NSLocalizedDescriptionKey: "Application executable not found."])
+                }
+                try FileManager.default.createDirectory(
+                    at: tbIntelSenderLaunchAgentURL.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                let plist: [String: Any] = [
+                    "Label": "com.targetbridge.intel-sender",
+                    "ProgramArguments": [executable, "--targetbridge-login"],
+                    "RunAtLoad": true,
+                    "ProcessType": "Interactive",
+                    "LimitLoadToSessionType": "Aqua"
+                ]
+                let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+                try data.write(to: tbIntelSenderLaunchAgentURL, options: .atomic)
+                try runLaunchctl(["bootout", "gui/\(getuid())/com.targetbridge.intel-sender"], allowFailure: true)
+                try runLaunchctl(["bootstrap", "gui/\(getuid())", tbIntelSenderLaunchAgentURL.path])
             } else {
-                try SMAppService.mainApp.unregister()
+                try runLaunchctl(["bootout", "gui/\(getuid())/com.targetbridge.intel-sender"], allowFailure: true)
+                if FileManager.default.fileExists(atPath: tbIntelSenderLaunchAgentURL.path) {
+                    try FileManager.default.removeItem(at: tbIntelSenderLaunchAgentURL)
+                }
             }
             launchesAtLogin = enabled
             launchAtLoginError = nil
         } catch {
-            launchesAtLogin = SMAppService.mainApp.status == .enabled
+            launchesAtLogin = FileManager.default.fileExists(atPath: tbIntelSenderLaunchAgentURL.path)
             launchAtLoginError = error.localizedDescription
         }
     }
 
+    private func runLaunchctl(_ arguments: [String], allowFailure: Bool = false) throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        process.arguments = arguments
+        try process.run()
+        process.waitUntilExit()
+        if !allowFailure, process.terminationStatus != 0 {
+            throw NSError(
+                domain: "TargetBridgeLogin",
+                code: Int(process.terminationStatus),
+                userInfo: [NSLocalizedDescriptionKey: "launchctl failed (\(process.terminationStatus))."]
+            )
+        }
+    }
+
     func connectConfiguredSessionsAtLaunch() {
-        guard connectsAtLaunch else { return }
+        guard connectsAtLaunch, CommandLine.arguments.contains("--targetbridge-login") else { return }
         Task { @MainActor [weak self] in
             // Allow interfaces and Bonjour discovery to settle after login.
             try? await Task.sleep(nanoseconds: 1_200_000_000)

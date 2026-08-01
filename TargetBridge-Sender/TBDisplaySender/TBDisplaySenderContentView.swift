@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -32,17 +33,25 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
         guard let parent = NSApp.keyWindow ?? NSApp.mainWindow else { return }
         route = newRoute
         let content: AnyView
+        let panelTitle: String
         switch newRoute {
         case .general:
+            panelTitle = "TargetBridge Intel Sender — \(generalSettingsTitle(service.language))"
             content = AnyView(TBDisplaySenderSettingsView(service: service))
         case .session(let id):
             guard let session = service.sessions.first(where: { $0.id == id }) else { return }
+            panelTitle = service.sessionTitle(for: session)
             content = AnyView(TBDisplaySenderSessionSettingsSheet(service: service, session: session) { [weak self] in
                 self?.close()
             })
         }
 
         show(content, attachedTo: parent)
+        panel?.title = panelTitle
+    }
+
+    private func generalSettingsTitle(_ language: TBDisplaySenderLanguage) -> String {
+        language == .spanish ? "Ajustes" : "Settings"
     }
 
     private func show(_ content: AnyView, attachedTo parent: NSWindow) {
@@ -64,16 +73,16 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
     private func makePanel() -> NSPanel {
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 410, height: 700),
-            styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .visible
+        panel.titlebarAppearsTransparent = false
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
-        panel.minSize = NSSize(width: 340, height: 420)
-        panel.maxSize = NSSize(width: 470, height: 1_400)
+        panel.minSize = NSSize(width: 440, height: 420)
+        panel.maxSize = NSSize(width: 540, height: 1_400)
         panel.delegate = self
         return panel
     }
@@ -94,7 +103,7 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
         let rightSpace = visible.maxX - parentFrame.maxX
         let leftSpace = parentFrame.minX - visible.minX
         let availableSide = max(rightSpace, leftSpace)
-        let width = min(430, max(340, availableSide - 8))
+        let width = min(510, max(440, availableSide - 8))
         let height = min(parentFrame.height, visible.height)
         let useRight = rightSpace >= width || rightSpace >= leftSpace
         let proposedX = useRight ? parentFrame.maxX + 1 : parentFrame.minX - width - 1
@@ -121,6 +130,102 @@ private final class TBDisplaySenderSidePanelController: NSObject, NSWindowDelega
     func windowWillClose(_ notification: Notification) {
         route = nil
         detachFromParent()
+    }
+}
+
+@MainActor
+private final class TBTelemetryPanelController: NSObject, NSWindowDelegate {
+    static let shared = TBTelemetryPanelController()
+    private var panel: NSPanel?
+    private weak var parentWindow: NSWindow?
+
+    func toggle(session: TBDisplaySenderSession, service: TBDisplaySenderService) {
+        if panel?.isVisible == true {
+            close()
+            return
+        }
+        guard let parent = NSApp.keyWindow ?? NSApp.mainWindow else { return }
+        let panel = panel ?? NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 820, height: 220),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "\(service.sessionTitle(for: session)) — Telemetry"
+        panel.minSize = NSSize(width: 560, height: 190)
+        panel.maxSize = NSSize(width: 1_200, height: 360)
+        panel.isReleasedWhenClosed = false
+        panel.delegate = self
+        panel.contentViewController = NSHostingController(rootView: TBTelemetryPanelView(session: session))
+        if parentWindow !== parent {
+            parentWindow?.removeChildWindow(panel)
+            parentWindow = parent
+            parent.addChildWindow(panel, ordered: .above)
+        }
+        let visible = parent.screen?.visibleFrame ?? parent.frame
+        let width = min(max(parent.frame.width, 680), visible.width)
+        let height: CGFloat = 220
+        let proposedY = parent.frame.minY - height - 1
+        let y = max(visible.minY, proposedY)
+        let x = min(max(parent.frame.midX - width / 2, visible.minX), visible.maxX - width)
+        panel.setFrame(NSRect(x: x, y: y, width: width, height: height), display: true)
+        panel.orderFront(nil)
+        self.panel = panel
+    }
+
+    func close() {
+        panel?.orderOut(nil)
+        if let panel, let parentWindow { parentWindow.removeChildWindow(panel) }
+        parentWindow = nil
+    }
+
+    func windowWillClose(_ notification: Notification) { close() }
+}
+
+private struct TBTelemetryPanelView: View {
+    @ObservedObject var session: TBDisplaySenderSession
+    @State private var fpsHistory: [Double] = Array(repeating: 0, count: 60)
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        HStack(spacing: 18) {
+            metric("FPS", "\(session.senderFPS)", .green)
+            metric("Codec", session.menuBarCodecLabel ?? "—", .cyan)
+            metric("Bitrate", "\(session.capturePreset.averageBitRate / 1_000_000) Mbps", .orange)
+            metric("Stream", "\(session.capturePreset.width) × \(session.capturePreset.height)", .primary)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("FPS · últimos 60 segundos")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Canvas { context, size in
+                    guard fpsHistory.count > 1 else { return }
+                    var path = Path()
+                    for (index, value) in fpsHistory.enumerated() {
+                        let x = size.width * CGFloat(index) / CGFloat(fpsHistory.count - 1)
+                        let y = size.height * (1 - CGFloat(min(max(value, 0), 60)) / 60)
+                        index == 0 ? path.move(to: CGPoint(x: x, y: y)) : path.addLine(to: CGPoint(x: x, y: y))
+                    }
+                    context.stroke(path, with: .color(.green), lineWidth: 2)
+                }
+                .background(Color.green.opacity(0.06))
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.25)))
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(18)
+        .onReceive(timer) { _ in
+            fpsHistory.removeFirst()
+            fpsHistory.append(Double(session.senderFPS))
+        }
+    }
+
+    private func metric(_ title: String, _ value: String, _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title.uppercased()).font(.caption2.weight(.bold)).foregroundStyle(.secondary)
+            Text(value).font(.system(.body, design: .rounded, weight: .semibold)).foregroundStyle(color)
+        }
+        .frame(minWidth: 86, alignment: .leading)
     }
 }
 
@@ -425,12 +530,33 @@ private struct TBDisplaySenderSessionCard: View {
                 subtitle: session.streamResolutionText
             )
 
-            summaryTile(
-                title: fpsTitle,
-                value: "\(session.senderFPS)",
-                subtitle: session.isStreaming ? liveSubtitle : idleSubtitle,
-                accent: session.isStreaming ? .green : .secondary
-            )
+            telemetryTile
+        }
+    }
+
+    private var telemetryTile: some View {
+        SurfaceSubcard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    sectionHeading(fpsTitle)
+                    Spacer()
+                    Button {
+                        TBTelemetryPanelController.shared.toggle(session: session, service: service)
+                    } label: {
+                        Image(systemName: "chart.xyaxis.line")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Open live telemetry")
+                }
+                Text("\(session.senderFPS)")
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(session.isStreaming ? .green : .secondary)
+                Text(session.isStreaming ? liveSubtitle : idleSubtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -695,6 +821,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .labelsHidden()
                         .onChange(of: session.transportKind) { _, _ in
                             service.transportDidChange(for: session)
                         }
@@ -709,6 +836,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .labelsHidden()
                         .disabled(session.isConnected || session.isStreaming)
                     }
 
@@ -720,6 +848,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .labelsHidden()
                         .onChange(of: session.selectedReceiverID) { _, newValue in
                             guard let receiver = service.discoveredReceivers.first(where: { $0.id == newValue }) else { return }
                             service.applyDiscoveredReceiver(receiver, to: session)
@@ -737,13 +866,15 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
 
                 settingsSection(title: outputSettingsTitle) {
                     settingRow(TBDisplaySenderL10n.displayProfiles(service.language), details: TBDisplaySenderL10n.displayProfilesHint(service.language)) {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 105), spacing: 8)], spacing: 8) {
+                        HStack(spacing: 5) {
                             ForEach(TBDisplayProfile.allCases) { profile in
                                 Button(TBDisplaySenderL10n.displayProfileTitle(profile, language: service.language)) {
                                     service.applyDisplayProfile(profile, to: session)
                                 }
                                 .buttonStyle(.bordered)
-                                .frame(maxWidth: .infinity)
+                                .controlSize(.small)
+                                .font(.caption)
+                                .fixedSize(horizontal: true, vertical: false)
                                 .disabled(session.isConnected || session.isStreaming)
                             }
                         }
@@ -755,6 +886,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .labelsHidden()
                         .disabled(session.isConnected || session.isStreaming)
                     }
 
@@ -765,6 +897,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .labelsHidden()
                         .disabled(session.isConnected || session.isStreaming)
                     }
 
@@ -804,6 +937,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                                 }
                             }
                             .pickerStyle(.menu)
+                            .labelsHidden()
                             .disabled(!session.isConnected)
                         }
 
@@ -818,6 +952,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                                     }
                                 }
                                 .pickerStyle(.menu)
+                                .labelsHidden()
                                 .disabled(!session.isConnected)
                             }
                         }
@@ -998,7 +1133,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 content()
-                    .frame(maxWidth: 260, alignment: .trailing)
+                    .frame(maxWidth: 350, alignment: .trailing)
             }
 
             Text(details)

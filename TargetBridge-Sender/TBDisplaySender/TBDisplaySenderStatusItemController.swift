@@ -213,12 +213,23 @@ final class TBDisplaySenderStatusItemController: NSObject {
     }
 
     private func makeSessionMenuItem(for session: TBDisplaySenderSession) -> NSMenuItem {
+        let receiverName = session.receiverDisplayName.isEmpty ? session.receiverIP : session.receiverDisplayName
+        let compactReceiver = receiverName.count > 24 ? String(receiverName.prefix(21)) + "…" : receiverName
+        let compactTitle = compactReceiver.isEmpty
+            ? service.sessionTitle(for: session)
+            : "\(service.sessionTitle(for: session)) · \(compactReceiver)"
         let item = NSMenuItem(
-            title: "\(service.sessionTitle(for: session)): \(session.statusText)",
+            title: compactTitle,
             action: nil,
             keyEquivalent: ""
         )
         let submenu = NSMenu()
+
+        let stateItem = NSMenuItem(title: session.statusText, action: nil, keyEquivalent: "")
+        stateItem.isEnabled = false
+        stateItem.toolTip = session.statusText
+        submenu.addItem(stateItem)
+        submenu.addItem(.separator())
 
         let connectionTitle = (session.isConnected || session.isStreaming)
             ? TBDisplaySenderL10n.stopButton(service.language)

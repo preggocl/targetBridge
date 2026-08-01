@@ -29,6 +29,7 @@ if [[ "${1:-}" != "--yes" ]]; then
 fi
 
 osascript -e 'tell application "TargetBridge Intel Sender" to quit' 2>/dev/null || true
+/bin/launchctl bootout "gui/$(id -u)/$BUNDLE_ID" 2>/dev/null || true
 for target in "${targets[@]}"; do
   if [[ -e "$target" || -L "$target" ]]; then
     rm -rf -- "$target"
