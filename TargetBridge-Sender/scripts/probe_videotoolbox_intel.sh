@@ -3,8 +3,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SENDER_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUTPUT="${1:-$SENDER_ROOT/../docs/intel-videotoolbox-probe.json}"
+OUTPUT="${1:-$SENDER_ROOT/../docs/evidence/videotoolbox/latest-local.json}"
 PROBE_BINARY="${TMPDIR:-/tmp}/targetbridge-videotoolbox-probe"
+
+mkdir -p "$(dirname "$OUTPUT")"
 
 xcrun swiftc -target x86_64-apple-macos14.0 \
   -framework Foundation -framework CoreMedia -framework VideoToolbox \

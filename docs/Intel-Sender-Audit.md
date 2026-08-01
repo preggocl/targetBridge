@@ -23,7 +23,10 @@ The original Receiver target and all files below `TargetBridge-Receiver/` are un
 
 ## VideoToolbox results
 
-The x86_64 probe created and prepared hardware-required sessions on the actual Intel sender. Full machine-readable output is in `docs/intel-videotoolbox-probe.json`.
+The x86_64 probe created and prepared hardware-required sessions on the actual
+Intel sender. Full machine-readable output and host metadata are in
+`docs/evidence/videotoolbox/imac-2020-sequoia-15.7.7.json`. This proves session
+availability and preparation; it is not an encode-throughput benchmark.
 
 | Resolution | FPS | Bitrate | Codec | Hardware | Encoder ID | Status | Fallback |
 |---|---:|---:|---|---|---|---:|---|
@@ -66,7 +69,10 @@ settings.
 
 Read-only verification showed `10.0.0.2` routed through `bridge0`; `bridge0` was active at `10.0.0.1/24`. Three ICMP probes succeeded with 0% loss and 1.374 ms average RTT. No network settings or Wi-Fi state were changed.
 
-This validates reachability and routing, not sustained end-to-end video. A real receiver session is still required to measure steady FPS, achieved bitrate, thermal behavior and visual stability.
+This validates reachability and routing, not sustained end-to-end video. The
+subsequent real session confirmed HEVC at 4096 x 2304 and 30 delivered FPS, but
+long-duration testing is still required to characterize achieved bitrate,
+thermal behavior, latency and visual stability.
 
 ## Test procedure
 
@@ -80,4 +86,8 @@ This validates reachability and routing, not sustained end-to-end video. A real 
 
 ## Viability
 
-Compilation and hardware encoder availability are confirmed. Thunderbolt reachability is confirmed. The adaptation is viable for an Intel sender at the two requested logical resolutions. Final production confidence remains conditional on an end-to-end sustained session with the Monterey Receiver, because that cannot be inferred from encoder-session creation and ping alone.
+Compilation, hardware encoder availability, Thunderbolt reachability and a real
+end-to-end HEVC session are confirmed. The adaptation is viable for an Intel
+Sender at both requested logical resolutions. Production confidence remains
+conditional on longer sessions, additional Intel models and the planned Apple
+Silicon/Rosetta compatibility tests.
