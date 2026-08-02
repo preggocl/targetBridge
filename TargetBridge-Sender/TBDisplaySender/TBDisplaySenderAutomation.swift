@@ -20,7 +20,8 @@ enum TBSenderAutomation {
 
     /// Handle the registered Sender URL scheme (from `.onOpenURL`).
     static func handle(url: URL) {
-        guard url.scheme?.lowercased() == "targetbridge" else { return }
+        let scheme = url.scheme?.lowercased()
+        guard scheme == "targetbridge" || scheme == "targetbridge-intel" else { return }
         let action = (url.host ?? "").lowercased()
         var params: [String: String] = [:]
         if let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems {
