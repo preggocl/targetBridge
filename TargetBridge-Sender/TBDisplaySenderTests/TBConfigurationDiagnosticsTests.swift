@@ -22,6 +22,13 @@ final class TBConfigurationDiagnosticsTests: XCTestCase {
         XCTAssertEqual(checks.first(where: { $0.id == "receiver_input_monitoring" })?.state, .attention)
     }
 
+    func testInterfacePerformanceTiersMatchTransportNeeds() {
+        XCTAssertEqual(TBInterfacePerformanceAssessment.tier(for: 8.0), .rawNV12)
+        XCTAssertEqual(TBInterfacePerformanceAssessment.tier(for: 0.95), .compressed4K)
+        XCTAssertEqual(TBInterfacePerformanceAssessment.tier(for: 0.10), .compressedReduced)
+        XCTAssertEqual(TBInterfacePerformanceAssessment.tier(for: 0.05), .insufficient)
+    }
+
     private func baseSnapshot(
         hasScreenRecording: Bool = true,
         localInterfaceName: String? = "bridge0",

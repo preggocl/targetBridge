@@ -995,7 +995,12 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
     }
     @Published var isCableTesting = false
     @Published var cableTestResult: Double? = nil
+    @Published private(set) var interfacePerformanceResults: [TBInterfacePerformanceResult] = {
+        guard let data = UserDefaults.standard.data(forKey: "fd.tbdisplaysender.interfacePerformanceResults.v1") else { return [] }
+        return (try? JSONDecoder().decode([TBInterfacePerformanceResult].self, from: data)) ?? []
+    }()
     private var isCableTestConnection = false
+    private var cableTestMeasuredBytes: Int64 = 0
     @Published var receiverIP: String = UserDefaults.standard.string(forKey: receiverIPDefaultsKey) ?? "" {
         didSet {
             UserDefaults.standard.set(receiverIP, forKey: Self.receiverIPDefaultsKey)
@@ -1469,7 +1474,12 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
             throw NSError(domain: "TBDisplaySenderService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No connection"])
         }
 
-        let totalBytes: Int64 = 20 * 1000 * 1000 * 1000
+        // A shorter sample is sufficient to expose a saturated link while
+        // avoiding the inherited 20 GB transfer on every diagnostic run.
+        let totalBytes: Int64 = transportKind == .networkLink
+            ? 1 * 1000 * 1000 * 1000
+            : 4 * 1000 * 1000 * 1000
+        cableTestMeasuredBytes = totalBytes
         let chunkSize = 4 * 1000 * 1000
         let totalChunks = Int(totalBytes / Int64(chunkSize))
 
@@ -2235,6 +2245,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
                 do {
                     let rate = try await self.performCableTest()
                     self.cableTestResult = rate
+                    self.recordInterfacePerformance(rateGbps: rate)
                 } catch {
                     NSLog("TargetBridge: cable test failed: \(error)")
                     self.stop(resetStatusTo: .connectionFailed(error.localizedDescription))
@@ -2310,6 +2321,27 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
 
             self.setStatus(.captureStartedWaitingFirstFrame)
             self.startFirstFrameWatchdog()
+        }
+    }
+
+    private func recordInterfacePerformance(rateGbps: Double) {
+        let localIP = localInterfaceIP.trimmingCharacters(in: .whitespacesAndNewlines)
+        let targetIP = receiverIP.trimmingCharacters(in: .whitespacesAndNewlines)
+        let interfaceName = connectInterfaceName ?? "unknown"
+        let result = TBInterfacePerformanceResult(
+            interfaceName: interfaceName,
+            localIP: localIP,
+            receiverIP: targetIP,
+            transportRawValue: transportKind.rawValue,
+            rateGbps: rateGbps,
+            measuredBytes: cableTestMeasuredBytes,
+            date: Date()
+        )
+        interfacePerformanceResults.removeAll { $0.id == result.id }
+        interfacePerformanceResults.insert(result, at: 0)
+        interfacePerformanceResults = Array(interfacePerformanceResults.prefix(24))
+        if let data = try? JSONEncoder().encode(interfacePerformanceResults) {
+            UserDefaults.standard.set(data, forKey: "fd.tbdisplaysender.interfacePerformanceResults.v1")
         }
     }
 

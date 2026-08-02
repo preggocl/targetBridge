@@ -1121,6 +1121,17 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                                 .disabled(!session.canRestartCapture)
                             }
 
+                            Text(interfaceTestHint)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(service.localInterfaces) { localInterface in
+                                    interfacePerformanceRow(localInterface)
+                                }
+                            }
+
                             Divider().overlay(Color.white.opacity(0.08))
 
                             VStack(alignment: .leading, spacing: 8) {
@@ -1610,6 +1621,109 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
 
     private var cableRateColor: Color {
         session.cableTestResult == nil ? .secondary : .green
+    }
+
+    private var interfaceTestHint: String {
+        switch service.language {
+        case .spanish:
+            return "La prueba usa la interfaz y la IP del receptor elegidas arriba. Selecciona el enlace correcto antes de medir; la app no modifica la red."
+        case .italian:
+            return "Il test usa l'interfaccia e l'IP del receiver selezionati sopra. Scegli il collegamento corretto prima della misura; l'app non modifica la rete."
+        case .german:
+            return "Der Test verwendet die oben gewählte Schnittstelle und Receiver-IP. Vor der Messung den richtigen Link wählen; die App ändert keine Netzwerkeinstellungen."
+        case .french:
+            return "Le test utilise l’interface et l’adresse IP du receiver sélectionnées ci-dessus. Choisissez le bon lien avant la mesure ; l’app ne modifie pas le réseau."
+        case .chinese:
+            return "测试使用上方选择的接口和接收端 IP。测量前请选择正确链路；应用不会更改网络设置。"
+        case .english:
+            return "The test uses the interface and Receiver IP selected above. Choose the correct link before measuring; the app does not change network settings."
+        }
+    }
+
+    @ViewBuilder
+    private func interfacePerformanceRow(_ localInterface: TBLocalLinkInterface) -> some View {
+        let result = session.interfacePerformanceResults.first { $0.localIP == localInterface.ip }
+        HStack(alignment: .top, spacing: 10) {
+            Circle()
+                .fill(localInterface.ip == session.localInterfaceIP ? Color.green : Color.secondary.opacity(0.45))
+                .frame(width: 7, height: 7)
+                .padding(.top, 6)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("\(localInterface.name) · \(localInterface.ip)")
+                    .font(.subheadline.weight(.semibold))
+                    .textSelection(.enabled)
+                Text(localInterface.transportKind.title(service.language))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 12)
+            if let result {
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(String(format: "%.2f Gbits/s", result.rateGbps))
+                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    Text(interfaceRecommendation(result.tier))
+                        .font(.caption)
+                        .foregroundStyle(interfaceRecommendationColor(result.tier))
+                    Text("→ \(result.receiverIP)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+            } else {
+                Text(interfaceNotMeasured)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 3)
+    }
+
+    private var interfaceNotMeasured: String {
+        switch service.language {
+        case .spanish: return "Sin medición"
+        case .italian: return "Non misurato"
+        case .german: return "Nicht gemessen"
+        case .french: return "Non mesuré"
+        case .chinese: return "未测量"
+        case .english: return "Not measured"
+        }
+    }
+
+    private func interfaceRecommendation(_ tier: TBInterfacePerformanceTier) -> String {
+        switch (tier, service.language) {
+        case (.rawNV12, .spanish): return "HEVC/H.264 y RAW NV12"
+        case (.compressed4K, .spanish): return "Adecuado para HEVC/H.264 4K"
+        case (.compressedReduced, .spanish): return "Solo perfiles comprimidos reducidos"
+        case (.insufficient, .spanish): return "Ancho de banda insuficiente"
+        case (.rawNV12, .italian): return "HEVC/H.264 e RAW NV12"
+        case (.compressed4K, .italian): return "Adatto a HEVC/H.264 4K"
+        case (.compressedReduced, .italian): return "Solo profili compressi ridotti"
+        case (.insufficient, .italian): return "Larghezza di banda insufficiente"
+        case (.rawNV12, .german): return "HEVC/H.264 und RAW NV12"
+        case (.compressed4K, .german): return "Geeignet für 4K HEVC/H.264"
+        case (.compressedReduced, .german): return "Nur reduzierte komprimierte Profile"
+        case (.insufficient, .german): return "Unzureichende Bandbreite"
+        case (.rawNV12, .french): return "HEVC/H.264 et RAW NV12"
+        case (.compressed4K, .french): return "Adapté au HEVC/H.264 4K"
+        case (.compressedReduced, .french): return "Profils compressés réduits uniquement"
+        case (.insufficient, .french): return "Bande passante insuffisante"
+        case (.rawNV12, .chinese): return "HEVC/H.264 和 RAW NV12"
+        case (.compressed4K, .chinese): return "适用于 4K HEVC/H.264"
+        case (.compressedReduced, .chinese): return "仅适用于较低压缩配置"
+        case (.insufficient, .chinese): return "带宽不足"
+        case (.rawNV12, .english): return "HEVC/H.264 and RAW NV12"
+        case (.compressed4K, .english): return "Suitable for 4K HEVC/H.264"
+        case (.compressedReduced, .english): return "Reduced compressed profiles only"
+        case (.insufficient, .english): return "Insufficient bandwidth"
+        }
+    }
+
+    private func interfaceRecommendationColor(_ tier: TBInterfacePerformanceTier) -> Color {
+        switch tier {
+        case .rawNV12, .compressed4K: return .green
+        case .compressedReduced: return .orange
+        case .insufficient: return .red
+        }
     }
 
     private func infoRow(_ label: String, _ value: String) -> some View {

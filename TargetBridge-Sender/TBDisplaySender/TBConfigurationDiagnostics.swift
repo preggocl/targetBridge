@@ -6,6 +6,37 @@ enum TBConfigurationCheckState: String, Equatable {
     case pending
 }
 
+enum TBInterfacePerformanceTier: String, Codable, Equatable {
+    case rawNV12
+    case compressed4K
+    case compressedReduced
+    case insufficient
+}
+
+enum TBInterfacePerformanceAssessment {
+    static func tier(for rateGbps: Double) -> TBInterfacePerformanceTier {
+        if rateGbps >= 7.5 { return .rawNV12 }
+        if rateGbps >= 0.15 { return .compressed4K }
+        if rateGbps >= 0.075 { return .compressedReduced }
+        return .insufficient
+    }
+}
+
+struct TBInterfacePerformanceResult: Codable, Identifiable, Equatable {
+    let interfaceName: String
+    let localIP: String
+    let receiverIP: String
+    let transportRawValue: String
+    let rateGbps: Double
+    let measuredBytes: Int64
+    let date: Date
+
+    var id: String { "\(transportRawValue)|\(interfaceName)|\(localIP)|\(receiverIP)" }
+    var tier: TBInterfacePerformanceTier {
+        TBInterfacePerformanceAssessment.tier(for: rateGbps)
+    }
+}
+
 struct TBConfigurationCheck: Identifiable, Equatable {
     let id: String
     let state: TBConfigurationCheckState
