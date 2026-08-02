@@ -924,10 +924,14 @@ final class TBDisplaySenderService: ObservableObject {
     }
 
     private func isLikelyLANIPv4(_ ip: String) -> Bool {
-        if ip.hasPrefix("169.254.") || ip.hasPrefix("127.") {
+        // A direct Ethernet cable without DHCP uses IPv4 link-local addresses
+        // (169.254/16). They are valid Network Link endpoints when the sender
+        // explicitly binds to the selected interface; excluding them made a
+        // working direct link disappear from the session picker.
+        if ip.hasPrefix("127.") {
             return false
         }
-        if ip.hasPrefix("10.") || ip.hasPrefix("192.168.") {
+        if ip.hasPrefix("10.") || ip.hasPrefix("169.254.") || ip.hasPrefix("192.168.") {
             return true
         }
         let components = ip.split(separator: ".")
