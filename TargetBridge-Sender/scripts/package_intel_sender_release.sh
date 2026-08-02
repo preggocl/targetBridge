@@ -4,11 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SENDER_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$SENDER_ROOT/.." && pwd)"
-VERSION="${1:-3.3.0-intel.1}"
+VERSION="${1:-3.3.0-intel.2}"
 APP_NAME="TargetBridge Intel Sender"
 APP_PATH="$REPO_ROOT/build-intel/$APP_NAME.app"
 DIST_DIR="$REPO_ROOT/dist/$VERSION"
-ARCHIVE_BASE="TargetBridge-Intel-Sender-$VERSION-x86_64"
+ARCHIVE_BASE="TargetBridge-Intel-Sender-$VERSION-universal"
 STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/targetbridge-intel-release.XXXXXX")"
 
 cleanup() {
@@ -20,7 +20,12 @@ trap cleanup EXIT
 
 EXECUTABLE="$APP_PATH/Contents/MacOS/$APP_NAME"
 [[ -x "$EXECUTABLE" ]] || { echo "Missing executable: $EXECUTABLE" >&2; exit 1; }
-file "$EXECUTABLE" | grep -q 'x86_64' || { echo "Release is not x86_64" >&2; exit 1; }
+for arch in x86_64 arm64; do
+  /usr/bin/lipo "$EXECUTABLE" -verify_arch "$arch" || {
+    echo "Release is missing $arch" >&2
+    exit 1
+  }
+done
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Contents/Info.plist")" == "com.targetbridge.intel-sender" ]] || {
   echo "Unexpected bundle identifier" >&2
   exit 1
@@ -48,4 +53,4 @@ echo "Release artifacts:"
 echo "  $DIST_DIR/$ARCHIVE_BASE.zip"
 echo "  $DIST_DIR/$ARCHIVE_BASE.dmg"
 echo "  $DIST_DIR/SHA256SUMS.txt"
-echo "These artifacts are ad-hoc signed unless build_intel_sender_app.sh is replaced with a Developer ID signing/export step."
+echo "These universal artifacts are ad-hoc signed unless build_intel_sender_app.sh is replaced with a Developer ID signing/export step."

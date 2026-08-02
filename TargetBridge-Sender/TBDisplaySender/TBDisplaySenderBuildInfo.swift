@@ -5,7 +5,7 @@ enum TBDisplaySenderBuildInfo {
     static let buildNumber = "20260801015945"
     static var versionDisplay: String {
         let version = Bundle.main.bundleIdentifier == "com.targetbridge.intel-sender"
-            ? "\(marketingVersion)-intel.1"
+            ? "\(marketingVersion)-intel.2"
             : marketingVersion
         let bundleBuild = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
         let displayedBuild = Bundle.main.bundleIdentifier == "com.targetbridge.intel-sender"

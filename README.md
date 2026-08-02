@@ -1,6 +1,7 @@
 # TargetBridge Intel Sender
 
-TargetBridge Intel Sender is an independent `x86_64` Sender fork of
+TargetBridge Intel Sender is an independent universal (`x86_64` and `arm64`)
+Sender fork of
 [TargetBridge](https://github.com/swellweb/targetBridge), maintained by
 **AndyStuardo**. It lets an Intel Mac create a virtual display and present it on
 another Mac running the TargetBridge Receiver, with Thunderbolt Bridge as the
@@ -15,8 +16,9 @@ running macOS Sequoia. The work remains useful outside that pair, but only the
 configurations listed in [Compatibility](docs/Compatibility.md) should be
 treated as verified.
 
-> Status: `3.3.0-intel.1` prerelease candidate. The Intel Sender is usable on
-> the validated hardware, but the downloadable package is not yet signed with
+> Status: `3.3.0-intel.2` universal prerelease candidate. The Sender is usable
+> natively on the validated Intel and Apple Silicon hardware, but the
+> downloadable package is not yet signed with
 > a Developer ID or notarized by Apple.
 
 ## Why this fork exists
@@ -29,7 +31,7 @@ can capture and encode the selected display reliably.
 The application is deliberately isolated from the original installation:
 
 - application name: `TargetBridge Intel Sender.app`
-- architecture: thin `x86_64`
+- architecture: universal `x86_64` + `arm64`
 - bundle identifier: `com.targetbridge.intel-sender`
 - URL scheme: `targetbridge-intel`
 - preferences, logs and Application Support data owned by the Intel variant
@@ -40,7 +42,7 @@ Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
 
 ## Intel fork additions and adaptations
 
-- Intel-native Sender build and packaging.
+- Native Intel and Apple Silicon Sender build and universal packaging.
 - 4K-oriented `Work 4K` profile plus logical HiDPI modes `2048 x 1152` and
   `2304 x 1296`.
 - Hardware VideoToolbox probing and live telemetry for codec, encoder, hardware
@@ -89,11 +91,12 @@ upstream authorship remains available in the Git history and original project.
 | Link | Thunderbolt Bridge, `10.0.0.1` to `10.0.0.2` through `bridge0` |
 | Toolchain | Xcode 26.3 (17C529) |
 
-The minimal Debug build, Release package and unit-test suite all complete as
-`x86_64`. The VideoToolbox probe created hardware-required H.264 GVA and HEVC
-AVE compression sessions at both prioritized logical resolutions. A real
-end-to-end session subsequently reached a 4096 x 2304 HEVC stream at 30
-delivered FPS.
+The minimal Debug build, Release package and unit-test suite complete as
+`x86_64`; the universal build also completed and ran natively as `arm64` on an
+M1 Mac. The VideoToolbox probe created hardware-required H.264 GVA and HEVC
+AVE compression sessions on the Intel iMac, and AVE H.264/HEVC sessions on the
+M1. A real M1-to-Intel-Receiver Thunderbolt session reached a 4096 x 2304 HEVC
+stream with hardware encoding and no codec fallback.
 
 See [Intel Sender audit](docs/Intel-Sender-Audit.md) for the exact findings and
 [machine-readable VideoToolbox evidence](docs/evidence/videotoolbox/imac-2020-sequoia-15.7.7.json)
@@ -119,16 +122,15 @@ The result is `build-intel/TargetBridge Intel Sender.app`. Copy it to
 
 ## Compatibility direction
 
-Sender and Receiver are roles, not fixed hardware directions. An Intel Mac can
-send to an Apple Silicon Mac if the latter runs a compatible arm64 Receiver.
-The shared protocol does not prohibit that arrangement, but it has not yet been
-verified by this fork. Conversely, the upstream Apple Silicon Sender can use an
-Intel Receiver; that remains an upstream workflow.
+Sender and Receiver are roles, not fixed hardware directions. The universal
+Sender has been built and run natively on both Intel and Apple Silicon; its
+first Apple Silicon end-to-end test was M1 Sender to Intel Receiver over
+Thunderbolt Bridge. Other direction and Receiver combinations should still be
+treated as test matrix entries until individually verified.
 
-The Intel Sender is currently a thin `x86_64` application. It may launch on
-Apple Silicon through Rosetta 2, but that is not the same as native arm64
-support. Planned M1 tests are tracked in [Compatibility](docs/Compatibility.md)
-and must be completed before making broader claims.
+“Intel” in the product name identifies the fork's original compatibility goal,
+isolated app identity and Intel-focused diagnostics; it does not mean the
+universal binary requires Rosetta on Apple Silicon.
 
 ## Documentation
 

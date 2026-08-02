@@ -8,19 +8,20 @@ DERIVED_DATA_DIR="${TMPDIR:-/tmp}/TargetBridgeIntelSender-DerivedData"
 PRODUCT_NAME="TargetBridge Intel Sender"
 DEST_DIR="$REPO_ROOT/build-intel"
 BACKUPS_DIR="$DEST_DIR/backups"
-INTEL_VERSION="${TB_INTEL_VERSION:-3.3.0-intel.1}"
+INTEL_VERSION="${TB_INTEL_VERSION:-3.3.0-intel.2}"
 INTEL_BUILD_NUMBER="${TB_INTEL_BUILD_NUMBER:-$(date -u +%Y%m%d%H%M%S)}"
 ARCHIVE_DIR="$BACKUPS_DIR/$INTEL_VERSION-build-$INTEL_BUILD_NUMBER"
+BUILD_ARCHS="${TB_BUILD_ARCHS:-x86_64 arm64}"
 
 cd "$SENDER_ROOT"
 xcodebuild \
   -project TargetBridge.xcodeproj \
   -scheme TBDisplaySender \
   -configuration Release \
-  -destination 'platform=macOS,arch=x86_64' \
+  -destination 'generic/platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_DIR" \
-  ARCHS=x86_64 \
-  ONLY_ACTIVE_ARCH=YES \
+  ARCHS="$BUILD_ARCHS" \
+  ONLY_ACTIVE_ARCH=NO \
   PRODUCT_NAME="$PRODUCT_NAME" \
   PRODUCT_BUNDLE_IDENTIFIER=com.targetbridge.intel-sender \
   CURRENT_PROJECT_VERSION="$INTEL_BUILD_NUMBER" \
@@ -53,6 +54,9 @@ ditto "$DEST_APP" "$ARCHIVE_APP"
 echo "Built: $DEST_APP"
 echo "Archived: $ARCHIVE_APP"
 file "$DEST_APP/Contents/MacOS/$PRODUCT_NAME"
+for arch in $BUILD_ARCHS; do
+  /usr/bin/lipo "$DEST_APP/Contents/MacOS/$PRODUCT_NAME" -verify_arch "$arch"
+done
 codesign -dv "$DEST_APP" 2>&1
 /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$DEST_APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$DEST_APP/Contents/Info.plist"
