@@ -7,7 +7,10 @@ REPO_ROOT="$(cd "$SENDER_ROOT/.." && pwd)"
 DERIVED_DATA_DIR="${TMPDIR:-/tmp}/TargetBridgeIntelSender-DerivedData"
 PRODUCT_NAME="TargetBridge Intel Sender"
 DEST_DIR="$REPO_ROOT/build-intel"
+BACKUPS_DIR="$DEST_DIR/backups"
+INTEL_VERSION="${TB_INTEL_VERSION:-3.3.0-intel.1}"
 INTEL_BUILD_NUMBER="${TB_INTEL_BUILD_NUMBER:-$(date -u +%Y%m%d%H%M%S)}"
+ARCHIVE_DIR="$BACKUPS_DIR/$INTEL_VERSION-build-$INTEL_BUILD_NUMBER"
 
 cd "$SENDER_ROOT"
 xcodebuild \
@@ -27,7 +30,12 @@ xcodebuild \
 
 SOURCE_APP="$DERIVED_DATA_DIR/Build/Products/Release/$PRODUCT_NAME.app"
 DEST_APP="$DEST_DIR/$PRODUCT_NAME.app"
-mkdir -p "$DEST_DIR"
+ARCHIVE_APP="$ARCHIVE_DIR/$PRODUCT_NAME.app"
+mkdir -p "$DEST_DIR" "$BACKUPS_DIR"
+if [[ -e "$ARCHIVE_DIR" ]]; then
+  echo "Refusing to overwrite archived build: $ARCHIVE_DIR" >&2
+  exit 1
+fi
 if [[ -e "$DEST_APP" ]]; then
   rm -rf -- "$DEST_APP"
 fi
@@ -39,8 +47,11 @@ xattr -cr "$DEST_APP" || true
 codesign --force --deep --sign - \
   --requirements '=designated => identifier "com.targetbridge.intel-sender"' \
   "$DEST_APP"
+mkdir -p "$ARCHIVE_DIR"
+ditto "$DEST_APP" "$ARCHIVE_APP"
 
 echo "Built: $DEST_APP"
+echo "Archived: $ARCHIVE_APP"
 file "$DEST_APP/Contents/MacOS/$PRODUCT_NAME"
 codesign -dv "$DEST_APP" 2>&1
 /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$DEST_APP/Contents/Info.plist"
