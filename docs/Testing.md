@@ -25,7 +25,7 @@ xcodebuild test \
 
 Test sources live in `TargetBridge-Sender/TBDisplaySenderTests/`.
 
-The prerelease candidate completed 82 Sender tests with no failures on the
+The universal prerelease candidate completed 83 Sender tests with no failures on the
 validated Intel iMac. A passing suite does not replace the real Receiver test.
 
 ## 2. Intel release package

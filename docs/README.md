@@ -1,8 +1,8 @@
 # Documentation
 
-This folder documents TargetBridge Intel Sender as it exists on the
-`intel-sender` branch. Some pages started upstream and have been updated where
-the Intel package changes installation, compatibility or user interface.
+This folder documents TargetBridge Intel Sender. Some pages started upstream
+and have been updated where the Intel package changes installation,
+compatibility or user interface.
 
 ## Start here
 
@@ -25,6 +25,15 @@ the Intel package changes installation, compatibility or user interface.
 - [Binary verification](verify-binaries.md): GitHub artifact attestations.
 - [Automation](Automation.md), [Add-ons](Addons.md),
   [Translations](Translations.md) and [audio internals](audio.md).
+
+## Project continuity
+
+- [Project overview](PROJECT_OVERVIEW.md): purpose, scope and repository map.
+- [Project state](PROJECT_STATE.md): current operational baseline, verification
+  and immediate work.
+- [Architecture](ARCHITECTURE.md): component responsibilities and stream path.
+- [Decisions](DECISIONS.md), [Roadmap](ROADMAP.md),
+  [Changelog](CHANGELOG.md) and [Handoff](HANDOFF.md).
 
 ## Upstream material
 
