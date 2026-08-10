@@ -4,9 +4,14 @@ import os
 
 enum TBIntelSenderIdentity {
     static let bundleIdentifier = "com.targetbridge.intel-sender"
-    static let isIntelVariant = Bundle.main.bundleIdentifier == bundleIdentifier
-    static let applicationSupportName = isIntelVariant ? "TargetBridge Intel Sender" : "TargetBridge"
-    static let logSubsystem = isIntelVariant ? bundleIdentifier : "com.targetbridge.sender"
+    static let legacyBundleIdentifier = "com.targetbridge.intel-sender.legacy"
+    static let activeBundleIdentifier = Bundle.main.bundleIdentifier ?? bundleIdentifier
+    static let isLegacyVariant = activeBundleIdentifier == legacyBundleIdentifier
+    static let isIntelVariant = activeBundleIdentifier == bundleIdentifier || isLegacyVariant
+    static let applicationSupportName = isLegacyVariant
+        ? "TargetBridge Intel Sender Legacy"
+        : (isIntelVariant ? "TargetBridge Intel Sender" : "TargetBridge")
+    static let logSubsystem = isIntelVariant ? activeBundleIdentifier : "com.targetbridge.sender"
 }
 
 /// Unified-logging entry points for the sender. `log stream --predicate
