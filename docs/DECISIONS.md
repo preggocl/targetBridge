@@ -60,3 +60,18 @@ again, and only then consider a new prerelease.
 **Consequences.** `3.3.0-intel.2` remains a local historical candidate rather
 than a current release baseline. Receiver modernization remains a separate,
 future effort.
+
+## 2026-08-10 — Maintain a separate legacy Sender line
+
+**Context.** Real probing showed that the Sender can create a virtual display
+and establish its transport on Intel Monterey 12.7.6, but some newer macOS
+APIs are unavailable there.
+
+**Decision.** Publish an explicitly labelled `legacy-sender` prerelease for
+x86_64 Macs on macOS 12.3+, with a separate bundle identifier and LaunchAgent.
+Hide only session-level system-audio capture where the native API is
+unavailable; keep the Audio Relay add-on visible for later investigation.
+
+**Consequences.** Legacy testing can proceed without conflating its limits with
+the universal Sender line. The branch must be validated against a real
+long-duration stream and later port compatible upstream 3.4.x changes.

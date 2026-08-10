@@ -54,3 +54,10 @@ The release script produces a universal application and local artifacts in
 `build-intel/`. Generated build output is not source of truth; reproducibility
 comes from versioned source, scripts and the verification procedure in
 [Testing](Testing.md) and [Release process](Release-Process.md).
+
+The `legacy-sender` branch adds a separately packaged x86_64 application with
+bundle identifier `com.targetbridge.intel-sender.legacy`, its own LaunchAgent,
+support directory and logs. Its build script overrides the deployment target
+to macOS 12.3 while leaving the universal line unchanged. On macOS 12 the
+session-level audio control is unavailable; the UI gates that control while
+the Audio Relay add-on catalogue remains intact.

@@ -8,7 +8,9 @@ is packaged as a universal macOS Sender (`x86_64` and `arm64`).
 
 The project keeps a distinct application identity, bundle identifier,
 preferences, support data, logs and uninstall path. It can therefore coexist
-with the upstream TargetBridge application and Receiver installation.
+with the upstream TargetBridge application and Receiver installation. The
+repository also contains an experimental legacy line with its own identity,
+`com.targetbridge.intel-sender.legacy`, for Intel Macs on macOS 12.3+.
 
 ## Scope
 
@@ -35,6 +37,10 @@ boundaries such as the Lock Screen or FileVault.
 - Optional experimental RAW NV12 transport when both endpoints support it.
 - Sender UI improvements: localized controls, quick menu actions, telemetry,
   launch options and attached settings panels.
+
+The legacy line is x86_64-only, uses a macOS 12.3 deployment target and hides
+session-level system-audio capture where the native API is unavailable. The
+Audio Relay add-on remains listed for future evaluation.
 
 Several capabilities remain inherited from TargetBridge, including the shared
 wire protocol, Receiver implementation, Work 5K / Low Latency / Presentation

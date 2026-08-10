@@ -46,8 +46,8 @@ candidate and must be repeated after the upstream integration.
 
 ## Immediate next work
 
-1. Publish the legacy branch as an explicitly labelled source prerelease and
-   retain the Monterey build evidence.
+1. Run the complete physical Monterey Sender/Receiver stream, reconnect and
+   sleep/wake checks against the published legacy prerelease.
 2. Create a clean integration branch from upstream `v3.4.2` and port the
    isolated Sender changes in reviewable groups.
 3. Re-run the Sender test suite, universal build checks and representative
