@@ -9,6 +9,7 @@ one physical direction.
 
 | Sender | Receiver | Status | Notes |
 |---|---|---|---|
+| Intel iMac 21.5-inch 4K 2017, Monterey 12.7.6 | Original Intel Receiver | Probe verified | Legacy x86_64 virtual-display probe and TCP connection over Ethernet; complete long-duration streaming and reconnect evidence remains pending |
 | Intel iMac 27-inch 5K 2020, Sequoia 15.7.7 | Intel iMac 21.5-inch 4K, Monterey | Verified | Thunderbolt Bridge, HEVC and H.264 hardware encoding; 4096 x 2304 HEVC observed at 30 delivered FPS |
 | MacBook Air M1, Sequoia 15.7.7 | Intel iMac 21.5-inch 4K, Monterey | Verified | Native `arm64` Sender from the universal package; Thunderbolt Bridge `10.0.0.3` to `10.0.0.2`; hardware HEVC AVE, 4096 x 2304, no codec fallback |
 | Intel Mac with this fork | Apple Silicon Mac with arm64 Receiver | Expected, unverified | The universal Sender is native on Intel; requires an arm64 Receiver package and an end-to-end test |

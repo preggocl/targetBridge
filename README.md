@@ -10,11 +10,12 @@ preferred transport.
 <img src="docs/assets/targetbridge-intel-sender-icon-master.png"
      alt="TargetBridge Intel Sender icon" width="180">
 
-The fork began with a specific setup: reuse a 21.5-inch 4K Intel iMac running
+The universal fork was first exercised with a 21.5-inch 4K Intel iMac running
 macOS Monterey as an extended display for a 27-inch 5K Intel iMac from 2020
-running macOS Sequoia. The work remains useful outside that pair, but only the
-configurations listed in [Compatibility](docs/Compatibility.md) should be
-treated as verified.
+running macOS Sequoia. This legacy branch has a narrower, separately validated
+target: an Intel iMac Retina 4K 21.5-inch (2017) running macOS Monterey 12.7.6.
+Only the configurations listed in [Compatibility](docs/Compatibility.md) should
+be treated as verified.
 
 > Status: `3.3.0-intel-legacy.1` experimental legacy prerelease. This branch
 > targets Intel Sender builds on macOS 12.3+ and does not expose system-audio
@@ -50,7 +51,9 @@ Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
   `2304 x 1296`.
 - Hardware VideoToolbox probing and live telemetry for codec, encoder, hardware
   status, fallback, FPS, bitrate, resolution and errors.
-- H.264 and HEVC operation verified on the 2020 Intel iMac.
+- H.264 and HEVC operation verified on the 2020 Intel iMac in the main
+  universal fork candidate; legacy Monterey validation is limited to the probe
+  evidence described below.
 - Optional RAW NV12 transport when both ends advertise support. This remains
   experimental because its uncompressed bandwidth and memory-copy cost can be
   greater than its codec-latency saving.
@@ -93,17 +96,17 @@ upstream authorship remains available in the Git history and original project.
 
 | Role | Hardware and software |
 |---|---|
-| Sender | iMac Retina 5K 27-inch (2020), Intel Core i5 3.3 GHz, Radeon Pro 5300, macOS Sequoia 15.7.7 |
-| Receiver | iMac Retina 4K 21.5-inch, Intel, macOS Monterey, unchanged upstream Receiver |
-| Link | Thunderbolt Bridge, `10.0.0.1` to `10.0.0.2` through `bridge0` |
+| Legacy Sender probe | iMac Retina 4K 21.5-inch (2017), Intel, macOS Monterey 12.7.6 |
+| Receiver used for the probe | Original TargetBridge Receiver, unchanged |
+| Legacy link evidence | Direct Ethernet, TCP port 54321; full long-duration streaming and reconnect testing remains pending |
 | Toolchain | Xcode 26.3 (17C529) |
 
-The minimal Debug build, Release package and unit-test suite complete as
-`x86_64`; the universal build also completed and ran natively as `arm64` on an
-M1 Mac. The VideoToolbox probe created hardware-required H.264 GVA and HEVC
-AVE compression sessions on the Intel iMac, and AVE H.264/HEVC sessions on the
-M1. A real M1-to-Intel-Receiver Thunderbolt session reached a 4096 x 2304 HEVC
-stream with hardware encoding and no codec fallback.
+The legacy Debug build and unit-test suite complete as `x86_64` with a macOS
+12.3 deployment target. The Monterey probe created the isolated virtual-display
+path and established TCP with the unchanged Receiver. The detailed H.264/HEVC
+VideoToolbox evidence from the 2020 Intel iMac, plus the universal M1 test,
+belongs to the main universal fork candidate and is retained as separate
+evidence rather than as legacy validation.
 
 See [Intel Sender audit](docs/Intel-Sender-Audit.md) for the exact findings and
 [machine-readable VideoToolbox evidence](docs/evidence/videotoolbox/imac-2020-sequoia-15.7.7.json)
