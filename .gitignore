@@ -5,6 +5,7 @@
 DerivedData/
 build/
 build-intel/
+build-legacy/
 dist/
 
 # Xcode user data

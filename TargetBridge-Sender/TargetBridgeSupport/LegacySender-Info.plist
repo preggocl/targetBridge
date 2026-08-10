@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>TargetBridge Intel Sender Legacy</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>TargetBridge Intel Sender Legacy - Free &amp; Open Source</string>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>TargetBridge Intel Sender Legacy requires screen recording permission to stream a display to the receiver.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>TargetBridge Intel Sender Legacy uses System Events to run shortcuts selected for Receiver is Master.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.targetbridge.intel-sender.legacy</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>targetbridge-intel-legacy</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

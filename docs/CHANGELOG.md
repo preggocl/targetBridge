@@ -11,6 +11,28 @@ notes.
 - Added a compact project overview, operational state, architecture, decisions,
   roadmap and handoff documentation to preserve continuity between releases.
 
+## 3.3.0-intel-legacy.1 — experimental legacy prerelease
+
+### Added
+
+- Intel x86_64 Sender compatibility changes for a macOS 12.3 deployment target.
+- Availability gates for macOS 12 APIs and frameworks used by the Sender.
+- Real Monterey Intel probe evidence for virtual-display creation and TCP
+  connection to the unchanged Receiver.
+
+### Changed
+
+- The session-level system-audio control is hidden on macOS 12 because native
+  ScreenCaptureKit audio capture is unavailable there.
+- The Audio Relay add-on remains listed for later evaluation; it is not removed
+  or claimed as supported by this legacy session path.
+
+### Limitations
+
+- Experimental, x86_64-only, ad-hoc signed and not notarized.
+- End-to-end long-duration video acceptance on the physical Monterey pair is
+  still pending.
+
 ## 3.3.0-intel.2 — local universal prerelease candidate
 
 ### Changed

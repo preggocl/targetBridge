@@ -41,7 +41,7 @@ targets:
       - name: Stamp Sender Build Info
         script: |
           set -euo pipefail
-          if [[ "${CONFIGURATION}" == "Debug" || "${PRODUCT_BUNDLE_IDENTIFIER}" == "com.targetbridge.intel-sender" ]]; then
+          if [[ "${CONFIGURATION}" == "Debug" || "${PRODUCT_BUNDLE_IDENTIFIER}" == "com.targetbridge.intel-sender" || "${PRODUCT_BUNDLE_IDENTIFIER}" == "com.targetbridge.intel-sender.legacy" ]]; then
             exit 0
           fi
           STAMP="$(date +%Y%m%d%H%M%S)"

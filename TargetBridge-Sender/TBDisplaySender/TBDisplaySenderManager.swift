@@ -5,8 +5,15 @@ import Foundation
 import Network
 import ServiceManagement
 
+private let tbSenderIdentityBundleID: String = {
+    // Keep the legacy line's login item independent from the universal fork.
+    if Bundle.main.bundleIdentifier == "com.targetbridge.intel-sender.legacy" {
+        return "com.targetbridge.intel-sender.legacy"
+    }
+    return "com.targetbridge.intel-sender"
+}()
 private let tbIntelSenderLaunchAgentURL = FileManager.default.homeDirectoryForCurrentUser
-    .appendingPathComponent("Library/LaunchAgents/com.targetbridge.intel-sender.plist")
+    .appendingPathComponent("Library/LaunchAgents/\(tbSenderIdentityBundleID).plist")
 
 enum TBTransportKind: String, CaseIterable, Identifiable {
     case thunderboltBridge
@@ -176,7 +183,7 @@ final class TBDisplaySenderService: ObservableObject {
                     withIntermediateDirectories: true
                 )
                 let plist: [String: Any] = [
-                    "Label": "com.targetbridge.intel-sender",
+                    "Label": tbSenderIdentityBundleID,
                     "ProgramArguments": [executable, "--targetbridge-login"],
                     "RunAtLoad": true,
                     "ProcessType": "Interactive",
@@ -184,10 +191,10 @@ final class TBDisplaySenderService: ObservableObject {
                 ]
                 let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
                 try data.write(to: tbIntelSenderLaunchAgentURL, options: .atomic)
-                try runLaunchctl(["bootout", "gui/\(getuid())/com.targetbridge.intel-sender"], allowFailure: true)
+                try runLaunchctl(["bootout", "gui/\(getuid())/\(tbSenderIdentityBundleID)"], allowFailure: true)
                 try runLaunchctl(["bootstrap", "gui/\(getuid())", tbIntelSenderLaunchAgentURL.path])
             } else {
-                try runLaunchctl(["bootout", "gui/\(getuid())/com.targetbridge.intel-sender"], allowFailure: true)
+                try runLaunchctl(["bootout", "gui/\(getuid())/\(tbSenderIdentityBundleID)"], allowFailure: true)
                 if FileManager.default.fileExists(atPath: tbIntelSenderLaunchAgentURL.path) {
                     try FileManager.default.removeItem(at: tbIntelSenderLaunchAgentURL)
                 }

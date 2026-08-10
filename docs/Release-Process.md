@@ -40,6 +40,21 @@ bundle version `1` caused LaunchServices, Launchpad and Dock to retain an older
 application icon even when the installed asset catalog had changed. Do not
 override `TB_INTEL_BUILD_NUMBER` with a value already distributed.
 
+## Legacy Sender prerelease
+
+The legacy branch uses a separate identity and x86_64-only package:
+
+```bash
+TargetBridge-Sender/scripts/package_legacy_sender_release.sh 3.3.0-intel-legacy.1
+```
+
+The command builds with minimum macOS 12.3, bundle identifier
+`com.targetbridge.intel-sender.legacy`, and writes the ZIP, DMG and checksum to
+`dist/3.3.0-intel-legacy.1/`. Its app is named `TargetBridge Intel Sender
+Legacy.app`; use `uninstall-legacy.sh` for removal. This line does not expose
+session-level system-audio capture on macOS 12. The Audio Relay add-on remains
+listed for future evaluation.
+
 ## Signing and notarization boundary
 
 A public package with a smooth first launch should eventually use:

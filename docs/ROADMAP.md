@@ -2,11 +2,13 @@
 
 ## Next / committed
 
-1. Integrate the isolated Sender work onto upstream TargetBridge `v3.4.2` in
+1. Publish and test the explicitly labelled `3.3.0-intel-legacy.1` branch
+   candidate on the Monterey Intel iMac.
+2. Integrate the isolated Sender work onto upstream TargetBridge `v3.4.2` in
    small, reviewable changes.
-2. Re-run Sender unit tests, universal binary/package checks and representative
+3. Re-run Sender unit tests, universal binary/package checks and representative
    Intel and Apple Silicon end-to-end tests after integration.
-3. Prepare a clearly labelled prerelease only if those checks succeed; retain
+4. Prepare a clearly labelled universal prerelease only if those checks succeed; retain
    the original Receiver and network configuration boundaries.
 
 ## Planned
@@ -19,6 +21,9 @@
   protocol compatibility, safe lifecycle behavior and a modest UI layer.
 - Expand Receiver validation for older Intel Macs over practical Ethernet and
   Thunderbolt configurations, using conservative profiles where necessary.
+- Evaluate whether Audio Relay can be supported on legacy macOS through an
+  optional, explicitly documented audio path; do not make it a baseline
+  dependency.
 
 ## Exploratory
 

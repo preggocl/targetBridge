@@ -1,17 +1,17 @@
 # Project state
 
-Updated: 2026-08-09
+Updated: 2026-08-10
 
 ## Current baseline
 
-The working baseline is the Intel Sender fork at parent commit `a2e1153`
-(`Package universal Intel Sender distribution`). The active documentation branch
-is `project-continuity-docs`.
+The active branch is `legacy-sender`, based on the Intel Sender fork at parent
+commit `a2e1153` (`Package universal Intel Sender distribution`). This branch
+is an experimental compatibility line for Intel Sender builds on macOS 12.3+.
 
-The latest local package candidate is `3.3.0-intel.2`: a universal Sender with
-an isolated application identity. It is not the next public release baseline.
-The next integration target is upstream TargetBridge `v3.4.2`; the fork must be
-rebased or ported onto that baseline before another prerelease is prepared.
+The main fork candidate remains `3.3.0-intel.2`, a universal Sender with an
+isolated application identity. The legacy candidate is `3.3.0-intel-legacy.1`:
+x86_64, minimum macOS 12.3, with no session-level system-audio control. The
+next long-term integration target remains upstream TargetBridge `v3.4.2`.
 
 ## Implemented and verified
 
@@ -41,14 +41,17 @@ candidate and must be repeated after the upstream integration.
 - A pre-existing local modification to
   `TargetBridge-Sender/TargetBridge.xcodeproj/xcshareddata/xcschemes/TBDisplaySender.xcscheme`
   is outside this documentation task and must remain excluded from its commits.
+- The Audio Relay add-on remains in the catalogue for future work; it is not
+  claimed as supported by the macOS 12 legacy session path.
 
 ## Immediate next work
 
-1. Create a clean integration branch from upstream `v3.4.2` and port the
+1. Publish the legacy branch as an explicitly labelled source prerelease and
+   retain the Monterey build evidence.
+2. Create a clean integration branch from upstream `v3.4.2` and port the
    isolated Sender changes in reviewable groups.
-2. Re-run the Sender test suite, universal build checks and representative
+3. Re-run the Sender test suite, universal build checks and representative
    Intel/Apple Silicon acceptance tests on the integrated result.
-3. Only then decide whether to prepare an explicitly labelled prerelease.
 
 Detailed historical observations remain in [Intel Sender audit](Intel-Sender-Audit.md),
 [Compatibility](Compatibility.md) and the `Release-3.3.0-intel.*` notes.

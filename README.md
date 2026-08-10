@@ -16,10 +16,13 @@ running macOS Sequoia. The work remains useful outside that pair, but only the
 configurations listed in [Compatibility](docs/Compatibility.md) should be
 treated as verified.
 
-> Status: `3.3.0-intel.2` universal prerelease candidate. The Sender is usable
-> natively on the validated Intel and Apple Silicon hardware, but the
-> downloadable package is not yet signed with
-> a Developer ID or notarized by Apple.
+> Status: `3.3.0-intel-legacy.1` experimental legacy prerelease. This branch
+> targets Intel Sender builds on macOS 12.3+ and does not expose system-audio
+> streaming in a session. It is not yet Developer ID signed or notarized.
+
+The universal `3.3.0-intel.2` line remains the main fork candidate. The legacy
+line is maintained separately while compatibility with older macOS releases is
+validated.
 
 ## Why this fork exists
 
@@ -58,6 +61,10 @@ Bridge settings, Wi-Fi configuration or the upstream TargetBridge app.
 - Spanish localization, automatic language selection and English fallback.
 - Optional launch at login and login-only reconnection. Opening the app
   manually does not trigger automatic connection.
+- On macOS 12.x, the session-level system-audio control is hidden because the
+  native ScreenCaptureKit audio path is unavailable. The Audio Relay add-on
+  remains visible for later evaluation and is not removed from the add-on
+  catalogue.
 - Attached settings and telemetry panels, improved first-use connection action,
   and user-facing `Display/Pantalla` terminology while the protocol continues
   to use `session` internally.
@@ -119,6 +126,14 @@ TargetBridge-Sender/scripts/build_intel_sender_app.sh
 
 The result is `build-intel/TargetBridge Intel Sender.app`. Copy it to
 `/Applications` without replacing the original TargetBridge installation.
+
+For the Monterey-compatible legacy prerelease, use:
+
+```bash
+TargetBridge-Sender/scripts/package_legacy_sender_release.sh 3.3.0-intel-legacy.1
+```
+
+The x86_64 ZIP and DMG are written under `dist/3.3.0-intel-legacy.1/`.
 
 ## Compatibility direction
 
