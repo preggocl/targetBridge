@@ -168,7 +168,7 @@ struct TBDisplaySenderSettingsView: View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 12) {
                 Text(title.uppercased())
-                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .font(.system(.caption, design: .rounded).weight(.bold))
                     .tracking(1.0)
                     .foregroundStyle(.secondary)
                 content()
@@ -260,7 +260,7 @@ struct TBDisplaySenderSettingsView: View {
 
     private func addonChip(_ title: String, tint: Color) -> some View {
         Text(title)
-            .font(.system(.caption, design: .rounded, weight: .bold))
+            .font(.system(.caption, design: .rounded).weight(.bold))
             .foregroundStyle(tint)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)

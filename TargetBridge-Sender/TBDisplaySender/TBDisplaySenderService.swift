@@ -1233,7 +1233,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
         nonisolated func stream(_ stream: SCStream,
                                 didOutputSampleBuffer sampleBuffer: CMSampleBuffer,
                                 of type: SCStreamOutputType) {
-            if type == .audio {
+            if #available(macOS 13.0, *), type == .audio {
                 onAudio?(sampleBuffer)
                 return
             }
@@ -1615,7 +1615,9 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
         if let stream = scStream {
             if let delegate = captureDelegate {
                 try? stream.removeStreamOutput(delegate, type: .screen)
-                try? stream.removeStreamOutput(delegate, type: .audio)
+                if #available(macOS 13.0, *) {
+                    try? stream.removeStreamOutput(delegate, type: .audio)
+                }
             }
             stream.stopCapture(completionHandler: nil)
             scStream = nil
@@ -2400,11 +2402,15 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
             configuration.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
             configuration.showsCursor = !largeCursor
             configuration.scalesToFit = true
-            configuration.captureResolution = preset.captureResolution
-            configuration.capturesAudio = audioEnabled
-            configuration.excludesCurrentProcessAudio = true
-            configuration.sampleRate = 48000
-            configuration.channelCount = 2
+            if #available(macOS 14.0, *) {
+                configuration.captureResolution = preset.captureResolution
+            }
+            if #available(macOS 13.0, *) {
+                configuration.capturesAudio = audioEnabled
+                configuration.excludesCurrentProcessAudio = true
+                configuration.sampleRate = 48000
+                configuration.channelCount = 2
+            }
 
             streamResolutionText = TBDisplaySenderL10n.streamSummary(
                 preset: preset,
@@ -2437,7 +2443,7 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
                 type: .screen,
                 sampleHandlerQueue: DispatchQueue(label: "fd.tbmonitor.sender.capture", qos: .userInteractive)
             )
-            if audioEnabled {
+            if #available(macOS 13.0, *), audioEnabled {
                 try stream.addStreamOutput(
                     delegate,
                     type: .audio,
@@ -3095,7 +3101,9 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
         if let stream = scStream {
             if let delegate = captureDelegate {
                 try? stream.removeStreamOutput(delegate, type: .screen)
-                try? stream.removeStreamOutput(delegate, type: .audio)
+                if #available(macOS 13.0, *) {
+                    try? stream.removeStreamOutput(delegate, type: .audio)
+                }
             }
             stream.stopCapture(completionHandler: nil)
             scStream = nil

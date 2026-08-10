@@ -250,7 +250,7 @@ private struct TBTelemetryPanelView: View {
     private func metric(_ title: String, _ value: String, _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(title.uppercased()).font(.caption2.weight(.bold)).foregroundStyle(.secondary)
-            Text(value).font(.system(.body, design: .rounded, weight: .semibold)).foregroundStyle(color)
+            Text(value).font(.system(.body, design: .rounded).weight(.semibold)).foregroundStyle(color)
         }
         .frame(minWidth: 86, alignment: .leading)
     }
@@ -332,7 +332,7 @@ struct TBDisplaySenderContentView: View {
                         Text(TBDisplaySenderL10n.appName(service.language))
                             .font(.system(size: 31, weight: .bold, design: .rounded))
                         Text("INTEL SENDER")
-                            .font(.system(.caption, design: .rounded, weight: .bold))
+                            .font(.system(.caption, design: .rounded).weight(.bold))
                             .foregroundStyle(.green)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -427,14 +427,14 @@ struct TBDisplaySenderContentView: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title.uppercased())
-            .font(.system(.caption, design: .rounded, weight: .bold))
+            .font(.system(.caption, design: .rounded).weight(.bold))
             .tracking(1.1)
             .foregroundStyle(.secondary)
     }
 
     private func statusChip(_ text: String, tint: Color) -> some View {
         Text(text)
-            .font(.system(.footnote, design: .rounded, weight: .bold))
+            .font(.system(.footnote, design: .rounded).weight(.bold))
             .foregroundStyle(tint)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -670,7 +670,7 @@ private struct TBDisplaySenderSessionCard: View {
 
     private var statusChip: some View {
         Text(chipText)
-            .font(.system(.footnote, design: .rounded, weight: .bold))
+            .font(.system(.footnote, design: .rounded).weight(.bold))
             .foregroundStyle(chipTint)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -698,7 +698,7 @@ private struct TBDisplaySenderSessionCard: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title.uppercased())
-            .font(.system(.caption, design: .rounded, weight: .bold))
+            .font(.system(.caption, design: .rounded).weight(.bold))
             .tracking(1.0)
             .foregroundStyle(.secondary)
     }
@@ -858,7 +858,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                         }
                         .pickerStyle(.menu)
                         .labelsHidden()
-                        .onChange(of: session.transportKind) { _, _ in
+                        .onChange(of: session.transportKind) { _ in
                             service.transportDidChange(for: session)
                         }
                         .disabled(session.isConnected || session.isStreaming)
@@ -885,7 +885,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                         }
                         .pickerStyle(.menu)
                         .labelsHidden()
-                        .onChange(of: session.selectedReceiverID) { _, newValue in
+                        .onChange(of: session.selectedReceiverID) { newValue in
                             guard let receiver = service.discoveredReceivers.first(where: { $0.id == newValue }) else { return }
                             service.applyDiscoveredReceiver(receiver, to: session)
                         }
@@ -1109,7 +1109,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
                                 .disabled(session.isConnected || session.isStreaming || session.isCableTesting || trimmedReceiverIP.isEmpty || session.localInterfaceIP.isEmpty)
 
                                 Text(cableRateText)
-                                    .font(.system(.body, design: .rounded, weight: .semibold))
+                                    .font(.system(.body, design: .rounded).weight(.semibold))
                                     .foregroundStyle(cableRateColor)
 
                                 Spacer()
@@ -1192,7 +1192,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title.uppercased())
-            .font(.system(.caption, design: .rounded, weight: .bold))
+            .font(.system(.caption, design: .rounded).weight(.bold))
             .tracking(1.0)
             .foregroundStyle(.secondary)
     }
@@ -1660,7 +1660,7 @@ private struct TBDisplaySenderSessionSettingsSheet: View {
             if let result {
                 VStack(alignment: .trailing, spacing: 3) {
                     Text(String(format: "%.2f Gbits/s", result.rateGbps))
-                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
                     Text(interfaceRecommendation(result.tier))
                         .font(.caption)
                         .foregroundStyle(interfaceRecommendationColor(result.tier))

@@ -103,7 +103,7 @@ struct TBDisplaySenderAboutView: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title.uppercased())
-            .font(.system(.caption, design: .rounded, weight: .bold))
+            .font(.system(.caption, design: .rounded).weight(.bold))
             .tracking(1.0)
             .foregroundStyle(.secondary)
     }

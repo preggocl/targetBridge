@@ -18,7 +18,5 @@ struct TBDisplaySenderApp: App {
                     TBSenderAutomation.handle(url: url)
                 }
         }
-        .defaultSize(width: 860, height: 860)
-
     }
 }

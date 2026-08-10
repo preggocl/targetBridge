@@ -139,7 +139,8 @@ final class TBDisplaySenderService: ObservableObject {
         refreshLocalInterfaces()
         addonStore.refresh()
         restorePersistedSessions()
-        if SMAppService.mainApp.status == .enabled,
+        if #available(macOS 13.0, *),
+           SMAppService.mainApp.status == .enabled,
            !FileManager.default.fileExists(atPath: tbIntelSenderLaunchAgentURL.path) {
             setLaunchAtLogin(true)
         }
@@ -163,7 +164,7 @@ final class TBDisplaySenderService: ObservableObject {
         do {
             // Migrate away from the main-app login item: it cannot identify why
             // the app was opened, so it cannot distinguish login from a manual launch.
-            if SMAppService.mainApp.status == .enabled {
+            if #available(macOS 13.0, *), SMAppService.mainApp.status == .enabled {
                 try? SMAppService.mainApp.unregister()
             }
             if enabled {
@@ -267,7 +268,8 @@ final class TBDisplaySenderService: ObservableObject {
     }
 
     var audioRelayAvailable: Bool {
-        isAddonCapabilityEnabled(.audioRelay)
+        guard #available(macOS 13.0, *) else { return false }
+        return isAddonCapabilityEnabled(.audioRelay)
     }
 
     var inputDockstationAvailable: Bool {
