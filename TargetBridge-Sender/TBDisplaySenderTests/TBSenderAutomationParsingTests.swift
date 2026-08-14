@@ -51,6 +51,8 @@ final class TBSenderAutomationParsingTests: XCTestCase {
     // MARK: - parsePreset
 
     func testParsePresetAcceptsExactRawValues() {
+        XCTAssertEqual(TBSenderAutomation.parsePreset("fullHD30"), .fullHD30)
+        XCTAssertEqual(TBSenderAutomation.parsePreset("fullHD60"), .fullHD60)
         XCTAssertEqual(TBSenderAutomation.parsePreset("intel4KHiDPI2048"), .intel4KHiDPI2048)
         XCTAssertEqual(TBSenderAutomation.parsePreset("intel4KHiDPI2304"), .intel4KHiDPI2304)
         XCTAssertEqual(TBSenderAutomation.parsePreset("standard1440p"), .standard1440p)
@@ -62,6 +64,9 @@ final class TBSenderAutomationParsingTests: XCTestCase {
     }
 
     func testParsePresetAliases() {
+        XCTAssertEqual(TBSenderAutomation.parsePreset("1080p"), .fullHD30)
+        XCTAssertEqual(TBSenderAutomation.parsePreset("1920x1080"), .fullHD30)
+        XCTAssertEqual(TBSenderAutomation.parsePreset("1080p60"), .fullHD60)
         XCTAssertEqual(TBSenderAutomation.parsePreset("2048x1152"), .intel4KHiDPI2048)
         XCTAssertEqual(TBSenderAutomation.parsePreset("2304x1296"), .intel4KHiDPI2304)
         XCTAssertEqual(TBSenderAutomation.parsePreset("1440p"), .standard1440p)
@@ -91,6 +96,20 @@ final class TBSenderAutomationParsingTests: XCTestCase {
         XCTAssertEqual(spacious.height, 2304)
         XCTAssertEqual(spacious.renderMatchedDisplayMode, TBVirtualDisplayModeSize(width: 2304, height: 1296))
         XCTAssertEqual(spacious.codecName, "HEVC")
+    }
+
+    func testFullHDPresetsUseH264AtTheirRequestedFrameRates() {
+        let compatibility = TBDisplayCapturePreset.fullHD30
+        XCTAssertEqual(compatibility.width, 1920)
+        XCTAssertEqual(compatibility.height, 1080)
+        XCTAssertEqual(compatibility.expectedFrameRate, 30)
+        XCTAssertEqual(compatibility.codecName, "H.264")
+        XCTAssertEqual(compatibility.averageBitRate, 12_000_000)
+
+        let motion = TBDisplayCapturePreset.fullHD60
+        XCTAssertEqual(motion.expectedFrameRate, 60)
+        XCTAssertEqual(motion.codecName, "H.264")
+        XCTAssertEqual(motion.averageBitRate, 20_000_000)
     }
 
     func testParsePresetRejectsUnknown() {

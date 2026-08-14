@@ -268,6 +268,8 @@ enum TBDisplaySenderL10n {
 
     static func displayProfileTitle(_ profile: TBDisplayProfile, language: TBDisplaySenderLanguage) -> String {
         switch profile {
+        case .fullHD:
+            return "Full HD"
         case .work4K:
             return "Work 4K"
         case .work5K:
@@ -570,6 +572,10 @@ enum TBDisplaySenderL10n {
 extension TBDisplayCapturePreset {
     func title(_ language: TBDisplaySenderLanguage) -> String {
         switch self {
+        case .fullHD30:
+            return "Full HD"
+        case .fullHD60:
+            return "Full HD Smooth"
         case .intel4KHiDPI2048:
             return "4K HiDPI 2048"
         case .intel4KHiDPI2304:

@@ -8,6 +8,7 @@ struct TBDisplayProfileSettings: Equatable {
 }
 
 enum TBDisplayProfile: String, CaseIterable, Identifiable, Codable {
+    case fullHD
     case work4K
     case work5K
     case lowLatency
@@ -17,6 +18,13 @@ enum TBDisplayProfile: String, CaseIterable, Identifiable, Codable {
 
     var settings: TBDisplayProfileSettings {
         switch self {
+        case .fullHD:
+            return TBDisplayProfileSettings(
+                captureSource: .extendedDesktop,
+                capturePreset: .fullHD30,
+                matchRenderToStream: false,
+                audioEnabled: false
+            )
         case .work4K:
             return TBDisplayProfileSettings(
                 captureSource: .extendedDesktop,

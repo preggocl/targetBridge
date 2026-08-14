@@ -11,6 +11,8 @@ import Network
 import VideoToolbox
 
 enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
+    case fullHD30
+    case fullHD60
     case intel4KHiDPI2048
     case intel4KHiDPI2304
     case standard1440p
@@ -24,6 +26,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
+        case .fullHD30:
+            return "Full HD"
+        case .fullHD60:
+            return "Full HD Smooth"
         case .intel4KHiDPI2048:
             return "4K HiDPI 2048"
         case .intel4KHiDPI2304:
@@ -45,6 +51,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var description: String {
         switch self {
+        case .fullHD30:
+            return "1920 × 1080 · H.264 @ 30"
+        case .fullHD60:
+            return "1920 × 1080 · H.264 @ 60"
         case .intel4KHiDPI2048:
             return "2048 × 1152 HiDPI · 4096 × 2304 stream @ 60"
         case .intel4KHiDPI2304:
@@ -66,6 +76,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var width: Int {
         switch self {
+        case .fullHD30, .fullHD60:
+            return 1920
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 4096
         case .standard1440p, .smooth1440p60:
@@ -81,6 +93,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var height: Int {
         switch self {
+        case .fullHD30, .fullHD60:
+            return 1080
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 2304
         case .standard1440p, .smooth1440p60:
@@ -96,6 +110,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var averageBitRate: Int {
         switch self {
+        case .fullHD30:
+            return 12_000_000
+        case .fullHD60:
+            return 20_000_000
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 80_000_000
         case .standard1440p:
@@ -115,7 +133,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var codecName: String {
         switch self {
-        case .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .fullHD30, .fullHD60, .standard1440p, .smooth1440p60, .smooth1800p60:
             return "H.264"
         case .intel4KHiDPI2048, .intel4KHiDPI2304, .crisp2160p60, .native5k, .native5k60Experimental:
             return "HEVC"
@@ -124,7 +142,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var codecType: CMVideoCodecType {
         switch self {
-        case .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .fullHD30, .fullHD60, .standard1440p, .smooth1440p60, .smooth1800p60:
             return kCMVideoCodecType_H264
         case .intel4KHiDPI2048, .intel4KHiDPI2304, .crisp2160p60, .native5k, .native5k60Experimental:
             return kCMVideoCodecType_HEVC
@@ -135,11 +153,24 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
         if let envVal = ProcessInfo.processInfo.environment["QD"], let parsed = Int(envVal) {
             return parsed
         }
-        return 2
+        switch self {
+        case .fullHD30, .standard1440p:
+            return 3
+        case .fullHD60, .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60,
+             .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+            // A small pool prevents WindowServer starvation during sustained
+            // capture without allowing the serial encoder pipeline to queue
+            // an unbounded number of frames.
+            return 5
+        }
     }
 
     var expectedFrameRate: Int {
         switch self {
+        case .fullHD30:
+            return 30
+        case .fullHD60:
+            return 60
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 60
         case .standard1440p:
@@ -159,6 +190,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var maxKeyFrameInterval: Int {
         switch self {
+        case .fullHD30:
+            return 60
+        case .fullHD60:
+            return 60
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 60
         case .standard1440p:
@@ -178,6 +213,10 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var maxKeyFrameIntervalDuration: Int {
         switch self {
+        case .fullHD30:
+            return 2
+        case .fullHD60:
+            return 1
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 1
         case .standard1440p:
@@ -193,9 +232,9 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var prioritizeSpeed: Bool {
         switch self {
-        case .standard1440p:
+        case .fullHD30, .standard1440p:
             return false
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+        case .fullHD60, .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
             return true
         }
     }
@@ -209,18 +248,18 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var maxFrameDelayCount: Int {
         switch self {
-        case .standard1440p:
+        case .fullHD30, .standard1440p:
             return 1
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+        case .fullHD60, .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
             return 0
         }
     }
 
     var dropsBeforeEncodeWhenBacklogged: Bool {
         switch self {
-        case .standard1440p:
+        case .fullHD30, .standard1440p:
             return false
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
+        case .fullHD60, .intel4KHiDPI2048, .intel4KHiDPI2304, .smooth1440p60, .smooth1800p60, .crisp2160p60, .native5k, .native5k60Experimental:
             return true
         }
     }
@@ -234,7 +273,7 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var captureResolution: SCCaptureResolutionType {
         switch self {
-        case .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
+        case .fullHD30, .fullHD60, .intel4KHiDPI2048, .intel4KHiDPI2304, .standard1440p, .smooth1440p60, .smooth1800p60:
             return .nominal
         case .crisp2160p60, .native5k, .native5k60Experimental:
             return .best
@@ -243,6 +282,8 @@ enum TBDisplayCapturePreset: String, CaseIterable, Identifiable {
 
     var virtualDisplayRefreshRate: Double {
         switch self {
+        case .fullHD30, .fullHD60:
+            return 60
         case .intel4KHiDPI2048, .intel4KHiDPI2304:
             return 60
         case .standard1440p:
@@ -1281,6 +1322,8 @@ final class TBDisplaySenderSession: NSObject, ObservableObject, Identifiable, @u
 
     private func resolvedCodecType(for preset: TBDisplayCapturePreset, profile: TBMonitorDisplayProfile?) -> CMVideoCodecType {
         switch preset {
+        case .fullHD30, .fullHD60:
+            return kCMVideoCodecType_H264
         case .standard1440p, .smooth1440p60, .smooth1800p60:
             let receiverSupportsHEVC = profile?.supportsHEVCDecode ?? receiverSupportsHEVCDecodeHint ?? false
             if receiverSupportsHEVC, Self.probeHEVCHardwareEncoderSupport() {
